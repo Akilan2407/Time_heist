@@ -1,12 +1,13 @@
 /* ─── Fonts loaded via <link> in index.html ─── */
-/* Bebas Neue (hero), Rajdhani (display), DM Sans (body), JetBrains Mono (mono) */
+/* Teko (hero), Cinzel (title), Orbitron (display), Outfit (body), JetBrains Mono (mono) */
 
 :root {
   /* ── Money Heist Font Stack ── */
-  --font-hero:    'Bebas Neue', 'Impact', sans-serif;               /* Cinematic titles */
-  --font-display: 'Rajdhani', 'Arial Narrow', sans-serif;          /* Tactical UI labels */
-  --font-body:    'DM Sans', system-ui, -apple-system, sans-serif; /* Clean body */
-  --font-mono:    'JetBrains Mono', 'Cascadia Code', monospace;    /* Numbers & data */
+  --font-hero:    'Teko', 'Impact', sans-serif;                     /* Tall, intense heist action titles & countdowns */
+  --font-title:   'Cinzel', 'Georgia', serif;                       /* Dramatic Royal Mint / La Casa de Papel subtitles */
+  --font-display: 'Orbitron', 'Rajdhani', sans-serif;               /* Tactical HUD labels & Professor console */
+  --font-body:    'Outfit', system-ui, -apple-system, sans-serif;   /* Sleek, readable gaming body text */
+  --font-mono:    'JetBrains Mono', 'Cascadia Code', monospace;     /* Numbers, currency ₹ & clocks */
 
   /* ── Money Heist Color Palette ── */
   --heist-red:      #e63946;
@@ -62,9 +63,12 @@ body {
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 15px;
+  font-weight: 400;
   line-height: 1.55;
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-image:
     radial-gradient(ellipse at 5% 5%,   rgba(193, 18, 31, 0.18) 0%, transparent 45%),
     radial-gradient(ellipse at 95% 10%, rgba(230, 57, 70, 0.12) 0%, transparent 40%),
@@ -100,8 +104,9 @@ body::after {
 ::-webkit-scrollbar-thumb:hover { background: rgba(230, 57, 70, 0.7); }
 
 /* ─── Typography Utilities ─── */
-.font-hero    { font-family: var(--font-hero);    letter-spacing: 0.06em; }
-.font-display { font-family: var(--font-display); letter-spacing: 0.04em; }
+.font-hero    { font-family: var(--font-hero);    letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+.font-title   { font-family: var(--font-title);   letter-spacing: 0.06em; }
+.font-display { font-family: var(--font-display); letter-spacing: 0.06em; font-weight: 600; }
 .font-mono    { font-family: var(--font-mono); }
 
 /* ─── Layout Container ─── */

@@ -165,7 +165,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
               🧑 You (Human Operator) {playerValid ? `(${playerActions.length} rooms in ${playerTotalTime}s)` : '(INVALID RUN)'}
             </span>
             <span className="font-mono" style={{ fontWeight: 700, color: '#00f0ff', fontSize: '1.1rem' }}>
-              ${playerTotalValue}k <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({Math.round(ratio * 100)}% optimal)</span>
+              ₹{playerTotalValue}k <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>({Math.round(ratio * 100)}% optimal)</span>
             </span>
           </div>
           <div style={{ height: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: '7px', overflow: 'hidden' }}>
@@ -185,7 +185,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
               💡 Greedy Knapsack Heuristic (Sorted by Value/Time Density • {greedyRoomCount} rooms in {greedyTime}s)
             </span>
             <span className="font-mono" style={{ fontWeight: 700, color: '#fbbf24', fontSize: '1.1rem' }}>
-              ${greedyValue}k <span style={{ fontSize: '0.8rem', color: greedyRatio === 1 ? '#10b981' : '#f59e0b' }}>({Math.round(greedyRatio * 100)}% optimal)</span>
+              ₹{greedyValue}k <span style={{ fontSize: '0.8rem', color: greedyRatio === 1 ? '#10b981' : '#f59e0b' }}>({Math.round(greedyRatio * 100)}% optimal)</span>
             </span>
           </div>
           <div style={{ height: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: '7px', overflow: 'hidden' }}>
@@ -205,7 +205,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
               🤖 DP Crew (Bottom-Up Dynamic Programming ground truth)
             </span>
             <span className="font-mono" style={{ fontWeight: 700, color: '#c084fc', fontSize: '1.1rem' }}>
-              ${optimalValue}k <span style={{ fontSize: '0.8rem', color: '#10b981' }}>(100% Optimal)</span>
+              ₹{optimalValue}k <span style={{ fontSize: '0.8rem', color: '#10b981' }}>(100% Optimal)</span>
             </span>
           </div>
           <div style={{ height: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: '7px', overflow: 'hidden' }}>
@@ -225,7 +225,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
               ⚡ Branch & Bound Crew (Best-First Search + Fractional Bound)
             </span>
             <span className="font-mono" style={{ fontWeight: 700, color: '#34d399', fontSize: '1.1rem' }}>
-              ${optimalValue}k <span style={{ fontSize: '0.8rem', color: '#10b981' }}>(100% Match)</span>
+              ₹{optimalValue}k <span style={{ fontSize: '0.8rem', color: '#10b981' }}>(100% Match)</span>
             </span>
           </div>
           <div style={{ height: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: '7px', overflow: 'hidden' }}>
@@ -250,15 +250,15 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         }}>
           {playerTotalValue > greedyValue ? (
             <span>
-              🏆 <strong style={{ color: '#f8fafc' }}>Outsmarted the Greedy Heuristic:</strong> You secured <strong style={{ color: '#00f0ff' }}>${playerTotalValue}k</strong>, beating the Greedy knapsack solver (<strong style={{ color: '#fbbf24' }}>${greedyValue}k</strong>) by <strong style={{ color: '#10b981' }}>+${playerTotalValue - greedyValue}k</strong>! Greedy density sorting was trapped in a local optimum.
+              🏆 <strong style={{ color: '#f8fafc' }}>Outsmarted the Greedy Heuristic:</strong> You secured <strong style={{ color: '#00f0ff' }}>₹{playerTotalValue}k</strong>, beating the Greedy knapsack solver (<strong style={{ color: '#fbbf24' }}>₹{greedyValue}k</strong>) by <strong style={{ color: '#10b981' }}>+₹{playerTotalValue - greedyValue}k</strong>! Greedy density sorting was trapped in a local optimum.
             </span>
           ) : playerTotalValue === greedyValue ? (
             <span>
-              🤝 <strong style={{ color: '#f8fafc' }}>Matched Greedy Heuristic:</strong> Your score (<strong style={{ color: '#00f0ff' }}>${playerTotalValue}k</strong>) equaled the value-to-cost greedy density baseline (<strong style={{ color: '#fbbf24' }}>${greedyValue}k</strong>).
+              🤝 <strong style={{ color: '#f8fafc' }}>Matched Greedy Heuristic:</strong> Your score (<strong style={{ color: '#00f0ff' }}>₹{playerTotalValue}k</strong>) equaled the value-to-cost greedy density baseline (<strong style={{ color: '#fbbf24' }}>₹{greedyValue}k</strong>).
             </span>
           ) : (
             <span>
-              💡 <strong style={{ color: '#f8fafc' }}>Greedy Comparison:</strong> A purely Greedy density strategy achieved <strong style={{ color: '#fbbf24' }}>${greedyValue}k</strong> ({Math.round(greedyRatio * 100)}% optimal) vs your <strong style={{ color: '#00f0ff' }}>${playerTotalValue}k</strong>. Using the Greedy Hint power-up next time can help bridge the gap!
+              💡 <strong style={{ color: '#f8fafc' }}>Greedy Comparison:</strong> A purely Greedy density strategy achieved <strong style={{ color: '#fbbf24' }}>₹{greedyValue}k</strong> ({Math.round(greedyRatio * 100)}% optimal) vs your <strong style={{ color: '#00f0ff' }}>₹{playerTotalValue}k</strong>. Using the Greedy Hint power-up next time can help bridge the gap!
             </span>
           )}
         </div>
@@ -279,7 +279,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             <div style={{ background: 'rgba(0,0,0,0.35)', padding: '10px 14px', borderRadius: '8px' }}>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Approximation Value</div>
               <div className="font-mono" style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fbbf24' }}>
-                ${greedyValue}k
+                ₹{greedyValue}k
               </div>
             </div>
             <div style={{ background: 'rgba(0,0,0,0.35)', padding: '10px 14px', borderRadius: '8px' }}>
@@ -344,7 +344,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             </div>
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
-            <strong>Pruning Advantage:</strong> Explored <strong>{heistResult.bnbNodesExplored} nodes</strong> out of theoretical $2^{"{" + heist.rooms.length + "}"} = {Math.pow(2, heist.rooms.length)} states via fractional knapsack bounds.
+            <strong>Pruning Advantage:</strong> Explored <strong>{heistResult.bnbNodesExplored} nodes</strong> out of theoretical 2<sup>{heist.rooms.length}</sup> = {Math.pow(2, heist.rooms.length)} states via fractional knapsack bounds.
           </div>
         </div>
 

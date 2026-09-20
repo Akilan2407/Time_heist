@@ -469,7 +469,7 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                   color: isLooted ? '#10b981' : !isRevealed ? '#64748b' : '#00f0ff'
                 }}
               >
-                {isRevealed || isLooted ? `$${room.value}k • ${room.timeCost}s` : '$?k • ?s'}
+                {isRevealed || isLooted ? `₹${room.value}k • ${room.timeCost}s` : '₹?k • ?s'}
               </div>
             </div>
           </div>

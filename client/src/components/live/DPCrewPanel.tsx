@@ -42,7 +42,7 @@ export const DPCrewPanel: React.FC<DPCrewPanelProps> = ({
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Secured Loot</div>
           <div className="font-mono" style={{ fontSize: '1.3rem', fontWeight: 800, color: '#c084fc' }}>
-            ${currentState.totalValue}k
+            ₹{currentState.totalValue}k
           </div>
         </div>
       </div>
@@ -118,7 +118,7 @@ export const DPCrewPanel: React.FC<DPCrewPanelProps> = ({
 
                     <div style={{ display: 'flex', gap: '12px', marginTop: '4px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       <span>Window: <strong style={{ color: '#00f0ff' }}>{item.timestamp}s - {item.timestamp + item.duration}s</strong></span>
-                      <span>Value: <strong style={{ color: '#f59e0b' }}>${item.value}k</strong></span>
+                      <span>Value: <strong style={{ color: '#f59e0b' }}>₹{item.value}k</strong></span>
                     </div>
                   </div>
 

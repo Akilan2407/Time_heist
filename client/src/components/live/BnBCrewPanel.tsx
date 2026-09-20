@@ -168,7 +168,7 @@ export const BnBCrewPanel: React.FC<BnBCrewPanelProps> = ({
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Best Solution</div>
           <div className="font-mono" style={{ fontSize: '1.3rem', fontWeight: 800, color: '#10b981' }}>
-            ${currentBestValue}k
+            ₹{currentBestValue}k
           </div>
         </div>
       </div>
@@ -318,7 +318,7 @@ export const BnBCrewPanel: React.FC<BnBCrewPanelProps> = ({
                   fontFamily="JetBrains Mono"
                   fontWeight="bold"
                 >
-                  {isPruned ? '✕' : isRoot ? 'R' : `$${node.step.currentValue}`}
+                  {isPruned ? '✕' : isRoot ? 'R' : `₹${node.step.currentValue}`}
                 </text>
 
                 {/* Bound label beneath node */}
@@ -345,7 +345,7 @@ export const BnBCrewPanel: React.FC<BnBCrewPanelProps> = ({
         {selectedNode ? (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <span className="font-mono" style={{ color: '#00f0ff' }}>{selectedNode.nodeId}</span>: {selectedNode.branchType.toUpperCase()} | Val: <strong style={{ color: '#f59e0b' }}>${selectedNode.currentValue}k</strong> | Cost: <strong style={{ color: '#38bdf8' }}>{selectedNode.currentTimeCost}s</strong> | Bound: <strong style={{ color: '#10b981' }}>{selectedNode.bound > 0 ? `$${Math.round(selectedNode.bound)}k` : 'N/A'}</strong>
+              <span className="font-mono" style={{ color: '#00f0ff' }}>{selectedNode.nodeId}</span>: {selectedNode.branchType.toUpperCase()} | Val: <strong style={{ color: '#f59e0b' }}>₹{selectedNode.currentValue}k</strong> | Cost: <strong style={{ color: '#38bdf8' }}>{selectedNode.currentTimeCost}s</strong> | Bound: <strong style={{ color: '#10b981' }}>{selectedNode.bound > 0 ? `₹${Math.round(selectedNode.bound)}k` : 'N/A'}</strong>
             </div>
             {selectedNode.status === 'pruned' && (
               <span className="badge badge-pruned">

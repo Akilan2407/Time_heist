@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Heist, HeistResult, PlayerAction, MovementLogEntry, Room } from '../../../shared/types.js';
 import { TimerHeader } from './live/TimerHeader.js';
 import { PlayerPanel } from './live/PlayerPanel.js';

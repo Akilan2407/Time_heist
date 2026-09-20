@@ -289,7 +289,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
 
         setBreachAlert({
           active: true,
-          message: `SPOTTED BY ${guard.name.toUpperCase()}! -$${CAUGHT_VALUE_PENALTY}k FINE & -${CAUGHT_TIME_PENALTY}s ALARM SURGE`,
+          message: `SPOTTED BY ${guard.name.toUpperCase()}! -₹${CAUGHT_VALUE_PENALTY}k FINE & -${CAUGHT_TIME_PENALTY}s ALARM SURGE`,
           guardName: guard.name
         });
 
@@ -387,7 +387,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Secured Loot</div>
           <div className="font-mono" style={{ fontSize: '1.6rem', fontWeight: 900, color: '#00f0ff' }}>
-            ${playerTotalValue}k
+            ₹{playerTotalValue}k
           </div>
         </div>
       </div>
@@ -487,7 +487,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
               isInteractive={!isFinished && !isStunned}
             />
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '10px' }}>
-              🔍 <strong>Intel:</strong> Walk near rooms or deploy <strong>Scout Drones</strong> to decode encrypted <code>$?k</code> values!
+              🔍 <strong>Intel:</strong> Walk near rooms or deploy <strong>Scout Drones</strong> to decode encrypted <code>₹?k</code> values!
             </div>
           </div>
         ) : (
@@ -564,11 +564,11 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                       {isRevealed || isLooted ? (
                         <>
                           <span>Cost: <strong style={{ color: '#00f0ff' }}>{room.timeCost}s</strong></span>
-                          <span>Value: <strong style={{ color: '#f59e0b' }}>${room.value}k</strong></span>
-                          <span>Efficiency: <strong style={{ color: '#10b981' }}>{(room.value / room.timeCost).toFixed(1)}k/s</strong></span>
+                          <span>Value: <strong style={{ color: '#f59e0b' }}>₹{room.value}k</strong></span>
+                          <span>Efficiency: <strong style={{ color: '#10b981' }}>₹{(room.value / room.timeCost).toFixed(1)}k/s</strong></span>
                         </>
                       ) : (
-                        <span>Intel Encrypted: <strong style={{ color: '#94a3b8' }}>$?k in ?s</strong></span>
+                        <span>Intel Encrypted: <strong style={{ color: '#94a3b8' }}>₹?k in ?s</strong></span>
                       )}
                     </div>
                   </div>

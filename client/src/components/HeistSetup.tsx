@@ -119,7 +119,7 @@ export const HeistSetup: React.FC<HeistSetupProps> = ({
             <div style={{ background: 'rgba(0,0,0,0.4)', padding: '12px 20px', borderRadius: '12px', border: '1px solid var(--border-subtle)', textAlign: 'center' }}>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Vault Potential</div>
               <div className="font-mono" style={{ fontSize: '1.6rem', fontWeight: 700, color: '#f59e0b' }}>
-                ${totalVaultValue}k
+                ₹{totalVaultValue}k
               </div>
             </div>
           </div>
@@ -254,11 +254,11 @@ export const HeistSetup: React.FC<HeistSetupProps> = ({
               </div>
             </div>
 
-            {/* Control 2: Vault Potential ($k) */}
+            {/* Control 2: Vault Potential (₹k) */}
             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-subtle)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <DollarSign size={15} color="#f59e0b" /> Vault Potential ($k)
+                  <DollarSign size={15} color="#f59e0b" /> Vault Potential (₹k)
                 </span>
                 <input
                   type="number"
@@ -418,7 +418,7 @@ export const HeistSetup: React.FC<HeistSetupProps> = ({
                   <div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Loot Value</div>
                     <div className="font-mono" style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b' }}>
-                      ${room.value}k
+                      ₹{room.value}k
                     </div>
                   </div>
 
@@ -432,7 +432,7 @@ export const HeistSetup: React.FC<HeistSetupProps> = ({
                   <div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Efficiency</div>
                     <div className="font-mono" style={{ fontSize: '0.9rem', fontWeight: 700, color: '#10b981' }}>
-                      ${ratio}k/s
+                      ₹{ratio}k/s
                     </div>
                   </div>
                 </div>

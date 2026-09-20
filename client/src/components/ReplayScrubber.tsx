@@ -247,7 +247,7 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
               <span className="font-display" style={{ fontWeight: 700, color: '#00f0ff', fontSize: '0.9rem' }}>YOU (OPERATOR)</span>
             </div>
             <span className="font-mono" style={{ fontWeight: 700, color: '#00f0ff', fontSize: '1rem' }}>
-              ${playerState.totalValue}k
+              ₹{playerState.totalValue}k
             </span>
           </div>
 
@@ -260,7 +260,7 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
               <span style={{ color: 'var(--text-muted)' }}>No rooms secured yet at t={scrubTime.toFixed(1)}s</span>
             ) : (
               playerState.lootedRoomIds.map((id) => (
-                <div key={id} style={{ color: '#34d399' }}>✓ {roomMap.get(id)?.name || id} (+${roomMap.get(id)?.value}k)</div>
+                <div key={id} style={{ color: '#34d399' }}>✓ {roomMap.get(id)?.name || id} (+₹{roomMap.get(id)?.value}k)</div>
               ))
             )}
           </div>
@@ -274,7 +274,7 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
               <span className="font-display" style={{ fontWeight: 700, color: '#c084fc', fontSize: '0.9rem' }}>DP CREW</span>
             </div>
             <span className="font-mono" style={{ fontWeight: 700, color: '#c084fc', fontSize: '1rem' }}>
-              ${dpState.totalValue}k
+              ₹{dpState.totalValue}k
             </span>
           </div>
 
@@ -287,7 +287,7 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
               <span style={{ color: 'var(--text-muted)' }}>No rooms secured yet at t={scrubTime.toFixed(1)}s</span>
             ) : (
               dpState.lootedRoomIds.map((id) => (
-                <div key={id} style={{ color: '#c084fc' }}>✓ {roomMap.get(id)?.name || id} (+${roomMap.get(id)?.value}k)</div>
+                <div key={id} style={{ color: '#c084fc' }}>✓ {roomMap.get(id)?.name || id} (+₹{roomMap.get(id)?.value}k)</div>
               ))
             )}
           </div>
@@ -301,7 +301,7 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
               <span className="font-display" style={{ fontWeight: 700, color: '#10b981', fontSize: '0.9rem' }}>B&B CREW</span>
             </div>
             <span className="font-mono" style={{ fontWeight: 700, color: '#10b981', fontSize: '1rem' }}>
-              ${bnbState.totalValue}k
+              ₹{bnbState.totalValue}k
             </span>
           </div>
 
@@ -314,7 +314,7 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
               <span style={{ color: 'var(--text-muted)' }}>No rooms secured yet at t={scrubTime.toFixed(1)}s</span>
             ) : (
               bnbState.lootedRoomIds.map((id) => (
-                <div key={id} style={{ color: '#34d399' }}>✓ {roomMap.get(id)?.name || id} (+${roomMap.get(id)?.value}k)</div>
+                <div key={id} style={{ color: '#34d399' }}>✓ {roomMap.get(id)?.name || id} (+₹{roomMap.get(id)?.value}k)</div>
               ))
             )}
           </div>
