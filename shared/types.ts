@@ -6,15 +6,39 @@ export interface Room {
   description?: string;
   icon?: string;
   securityLevel?: 'Low' | 'Medium' | 'High' | 'Extreme';
+  guarded?: boolean;
 }
 
 export interface RoomPosition {
   roomId: string;
-  x: number;   // pixel or percentage coordinate (0 to 100 or px)
+  x: number;   // pixel or percentage coordinate
   y: number;
 }
 
-export type CharacterStatus = 'idle' | 'running' | 'looting';
+export interface GuardPatrolWaypoint {
+  roomId: string;
+  stayDuration: number; // seconds the guard inspects this room
+}
+
+export interface Guard {
+  id: string;
+  name: string;
+  color: string;
+  patrolRoute: GuardPatrolWaypoint[]; // sequence of rooms to inspect
+  travelSpeed: number; // pixels per second (e.g. 110)
+}
+
+export interface GuardPositionResult {
+  x: number;
+  y: number;
+  status: 'patrolling' | 'inspecting';
+  currentRoomId: string | null;
+  targetRoomId: string | null;
+  facing: 'left' | 'right';
+  progress: number; // 0 to 1
+}
+
+export type CharacterStatus = 'idle' | 'running' | 'looting' | 'caught';
 
 export interface CharacterState {
   x: number;
@@ -25,9 +49,9 @@ export interface CharacterState {
 }
 
 export interface MovementLogEntry {
-  timestamp: number;      // ms since heist start (or seconds depending on scale)
+  timestamp: number;      // ms or seconds since heist start
   roomId: string;
-  eventType: 'arrived' | 'lootStart' | 'lootComplete';
+  eventType: 'arrived' | 'lootStart' | 'lootComplete' | 'caught';
 }
 
 export interface Heist {
@@ -35,6 +59,7 @@ export interface Heist {
   name: string;
   difficulty: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible';
   rooms: Room[];
+  guards: Guard[];
   timeBudget: number;   // total seconds available
   createdAt: number;
 }
@@ -89,6 +114,7 @@ export interface HeistResult {
   bnbTimeMs: number;
   dpTimeMs: number;
   prunedCount: number;
+  breachCount?: number;
 }
 
 export interface PlayerStateAtTime {

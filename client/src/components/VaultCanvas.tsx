@@ -1,7 +1,9 @@
 import React from 'react';
-import { Room, RoomPosition, CharacterStatus } from '../../shared/types.js';
+import { Room, RoomPosition, CharacterStatus, Guard } from '../../../shared/types.js';
 import { Character, CharacterProps } from './Character.js';
-import { Lock, CheckCircle2, ShieldAlert, Sparkles, DollarSign, Clock, ShieldCheck } from 'lucide-react';
+import { GuardMarker } from './GuardMarker.js';
+import { getGuardPositionAtTime } from '../../../shared/utils/movement.js';
+import { Lock, CheckCircle2, ShieldAlert, Sparkles, DollarSign, Clock, ShieldCheck, Eye } from 'lucide-react';
 import { soundFx } from '../utils/audio.js';
 
 export interface VaultCanvasProps {
@@ -12,6 +14,8 @@ export interface VaultCanvasProps {
   activeRoomId?: string | null;
   onRoomClick?: (room: Room) => void;
   characters: CharacterProps[];
+  guards?: Guard[];
+  currentTime?: number;
   width?: number;
   height?: number;
   disabledRoomIds?: Set<string>;
@@ -28,6 +32,8 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
   activeRoomId = null,
   onRoomClick,
   characters,
+  guards = [],
+  currentTime = 0,
   width = 740,
   height = 440,
   disabledRoomIds = new Set(),
@@ -48,6 +54,12 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
       y2: roomPositions[i + 1].y
     });
   }
+
+  // Calculate real-time guard positions
+  const guardPositions = guards.map((guard) => ({
+    guard,
+    pos: getGuardPositionAtTime(guard, roomPositions, currentTime)
+  }));
 
   return (
     <div
@@ -84,6 +96,11 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
           <span className="badge badge-player" style={{ fontSize: '0.72rem', padding: '3px 10px', background: 'rgba(0,240,255,0.2)' }}>
             {title}
           </span>
+          {guards.length > 0 && (
+            <span className="badge badge-guard" style={{ fontSize: '0.68rem' }}>
+              <Eye size={11} /> {guards.length} SENTRY {guards.length > 1 ? 'DRONES' : 'DRONE'} ACTIVE
+            </span>
+          )}
           {queue.length > 0 && (
             <span className="badge" style={{ background: 'rgba(245,158,11,0.25)', color: '#f59e0b', border: '1px solid #f59e0b', fontSize: '0.7rem' }}>
               TARGETS QUEUED: {queue.length}
@@ -95,7 +112,7 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
         </div>
       </div>
 
-      {/* SVG Conduits & Corridor Grid */}
+      {/* SVG Conduits & Guard Patrol Trajectories */}
       <svg
         width={width}
         height={height}
@@ -110,7 +127,7 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
 
         <rect width="100%" height="100%" fill="url(#canvas-grid-large)" />
 
-        {/* Security Conduits */}
+        {/* Base Security Conduits */}
         {conduits.map((c, i) => (
           <g key={`conduit_${i}`}>
             <line
@@ -124,6 +141,32 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
             />
           </g>
         ))}
+
+        {/* Guard Patrol Lines (Red Laser Trails) */}
+        {guards.map((g) => {
+          const wps = g.patrolRoute.map((wp) => posMap.get(wp.roomId)).filter(Boolean);
+          if (wps.length < 2) return null;
+
+          return (
+            <g key={`guard_route_${g.id}`}>
+              {wps.map((wp, i) => {
+                const nextWp = wps[(i + 1) % wps.length]!;
+                return (
+                  <line
+                    key={`g_seg_${g.id}_${i}`}
+                    x1={wp!.x}
+                    y1={wp!.y}
+                    x2={nextWp.x}
+                    y2={nextWp.y}
+                    stroke="rgba(239, 68, 68, 0.35)"
+                    strokeWidth="2"
+                    strokeDasharray="3 3"
+                  />
+                );
+              })}
+            </g>
+          );
+        })}
 
         {/* Start Airlock Entry Line */}
         <line
@@ -184,6 +227,11 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
         const isDisabled = disabledRoomIds.has(room.id) && !isLooted && !isActive;
         const isHint = hintRoomId === room.id;
 
+        // Is guard currently inspecting this room?
+        const isGuardPresent = guardPositions.some(
+          (gp) => gp.pos.currentRoomId === room.id || (Math.hypot(gp.pos.x - pos.x, gp.pos.y - pos.y) < 35)
+        );
+
         return (
           <div
             key={room.id}
@@ -221,7 +269,23 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
               />
             )}
 
-            {/* Room Portal Node (Enlarged) */}
+            {/* Guard Warning Alarm Wave */}
+            {isGuardPresent && (
+              <div
+                style={{
+                  position: 'absolute',
+                  width: '84px',
+                  height: '84px',
+                  borderRadius: '50%',
+                  border: '2px dashed #ef4444',
+                  boxShadow: '0 0 20px rgba(239, 68, 68, 0.4)',
+                  animation: 'radar-ping 1s ease-out infinite',
+                  pointerEvents: 'none'
+                }}
+              />
+            )}
+
+            {/* Room Portal Node */}
             <div
               style={{
                 width: '54px',
@@ -229,6 +293,8 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                 borderRadius: '14px',
                 background: isLooted
                   ? 'rgba(16, 185, 129, 0.2)'
+                  : isGuardPresent
+                  ? 'rgba(239, 68, 68, 0.3)'
                   : isActive
                   ? 'rgba(0, 240, 255, 0.3)'
                   : isHint
@@ -238,6 +304,8 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                   : 'rgba(18, 26, 42, 0.92)',
                 border: isLooted
                   ? '2px solid #10b981'
+                  : isGuardPresent
+                  ? '2.5px solid #ef4444'
                   : isActive
                   ? '2.5px solid #00f0ff'
                   : isHint
@@ -247,6 +315,8 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                   : '1.5px solid rgba(255, 255, 255, 0.18)',
                 boxShadow: isLooted
                   ? '0 0 20px rgba(16, 185, 129, 0.5)'
+                  : isGuardPresent
+                  ? '0 0 28px rgba(239, 68, 68, 0.8)'
                   : isActive
                   ? '0 0 26px rgba(0, 240, 255, 0.75)'
                   : isHint
@@ -265,10 +335,31 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
             >
               {isLooted ? (
                 <CheckCircle2 size={24} color="#10b981" />
+              ) : isGuardPresent ? (
+                <ShieldAlert size={24} color="#ef4444" className="animate-pulse-glow" />
               ) : isActive ? (
                 <Sparkles size={24} color="#00f0ff" className="animate-pulse-glow" />
               ) : (
                 <Lock size={22} color={isHint ? '#f59e0b' : '#94a3b8'} />
+              )}
+
+              {/* Guarded Hazard Indicator */}
+              {room.guarded && !isLooted && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '-6px',
+                    left: '-6px',
+                    background: 'rgba(239, 68, 68, 0.95)',
+                    borderRadius: '50%',
+                    padding: '2px',
+                    boxShadow: '0 0 8px #ef4444',
+                    display: 'flex'
+                  }}
+                  title="Guarded Patrol Sector"
+                >
+                  <Eye size={10} color="#ffffff" />
+                </div>
               )}
 
               {/* Queue Position Chip */}
@@ -305,7 +396,7 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                 style={{
                   fontSize: '0.78rem',
                   fontWeight: 700,
-                  color: isLooted ? '#34d399' : '#f8fafc',
+                  color: isLooted ? '#34d399' : isGuardPresent ? '#ef4444' : '#f8fafc',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap'
@@ -327,6 +418,19 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
           </div>
         );
       })}
+
+      {/* Render Sentry Drone Guards */}
+      {guardPositions.map(({ guard, pos }) => (
+        <GuardMarker
+          key={`guard_marker_${guard.id}`}
+          x={pos.x}
+          y={pos.y}
+          color={guard.color}
+          name={guard.name}
+          status={pos.status}
+          facing={pos.facing}
+        />
+      ))}
 
       {/* Render All Animated Characters */}
       {characters.map((char, idx) => (

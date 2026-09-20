@@ -13,7 +13,9 @@ import {
   Clock, 
   CheckCircle2, 
   Activity,
-  MapPin
+  MapPin,
+  ShieldAlert,
+  Eye
 } from 'lucide-react';
 import { soundFx } from '../utils/audio.js';
 
@@ -37,7 +39,7 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
   const [playbackSpeed, setPlaybackSpeed] = useState<0.5 | 1 | 2>(1);
 
   // Compute fixed 2D room positions for the Replay Arena
-  const roomPositions = useMemo(() => computeRoomPositions(heist.rooms, 740, 340), [heist.rooms]);
+  const roomPositions = useMemo(() => computeRoomPositions(heist.rooms, 760, 380), [heist.rooms]);
 
   // Pre-convert DP and BnB paths to movement logs for synchronized character tracking
   const dpMovementLog = useMemo(
@@ -52,17 +54,17 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
 
   // Synchronized character positions at scrubTime
   const playerPos = useMemo(
-    () => getPositionAtTime(playerMovementLog, roomPositions, scrubTime, 30, 50),
+    () => getPositionAtTime(playerMovementLog, roomPositions, scrubTime, 30, 60),
     [playerMovementLog, roomPositions, scrubTime]
   );
 
   const dpPos = useMemo(
-    () => getPositionAtTime(dpMovementLog, roomPositions, scrubTime, 30, 90),
+    () => getPositionAtTime(dpMovementLog, roomPositions, scrubTime, 30, 100),
     [dpMovementLog, roomPositions, scrubTime]
   );
 
   const bnbPos = useMemo(
-    () => getPositionAtTime(bnbMovementLog, roomPositions, scrubTime, 30, 130),
+    () => getPositionAtTime(bnbMovementLog, roomPositions, scrubTime, 30, 140),
     [bnbMovementLog, roomPositions, scrubTime]
   );
 
@@ -116,7 +118,7 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
             </span>
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-            All 3 characters run and hack simultaneously. Timestamp: <strong style={{ color: '#00f0ff' }}>t = {scrubTime.toFixed(1)}s</strong> / {heist.timeBudget}s
+            All 3 operatives and sentry drone guards patrol simultaneously. Timestamp: <strong style={{ color: '#00f0ff' }}>t = {scrubTime.toFixed(1)}s</strong> / {heist.timeBudget}s
           </div>
         </div>
 
@@ -189,14 +191,16 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
         </div>
       </div>
 
-      {/* Synchronized Vault Blueprint Arena (Multi-Character View) */}
+      {/* Synchronized Vault Blueprint Arena (Multi-Character View with Guards) */}
       <div style={{ marginBottom: '20px' }}>
         <VaultCanvas
           rooms={heist.rooms}
           roomPositions={roomPositions}
           lootedRoomIds={playerState.lootedRoomIds}
           activeRoomId={playerPos.activeRoomId}
-          title="SIMULATED TRI-CREW VAULT ARENA"
+          guards={heist.guards}
+          currentTime={scrubTime}
+          title="TRI-CREW & SENTRY PATROL REPLAY ARENA"
           characters={[
             {
               x: playerPos.x,
@@ -226,8 +230,8 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
               transitionDuration: 0
             }
           ]}
-          width={740}
-          height={340}
+          width={760}
+          height={380}
           isInteractive={false}
         />
       </div>
@@ -248,7 +252,7 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
           </div>
 
           <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-            State: <strong style={{ color: '#f8fafc' }}>{playerPos.status.toUpperCase()}</strong> ({playerState.currentActivity})
+            State: <strong style={{ color: playerPos.status === 'caught' ? '#ef4444' : '#f8fafc' }}>{playerPos.status.toUpperCase()}</strong> ({playerState.currentActivity})
           </div>
 
           <div style={{ background: 'rgba(0,0,0,0.3)', borderRadius: '6px', padding: '6px', minHeight: '48px', maxHeight: '70px', overflowY: 'auto', fontSize: '0.7rem' }}>

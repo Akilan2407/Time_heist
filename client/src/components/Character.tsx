@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CharacterStatus } from '../../shared/types.js';
+import { CharacterStatus } from '../../../shared/types.js';
 import { Zap, Sparkles, Lock, ShieldCheck } from 'lucide-react';
 import runboyImg from '../assets/runboy.png';
 import { removeWhiteBackground } from '../utils/imageUtils.js';

@@ -63,6 +63,11 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
     setPlayerTotalValue((val) => val + room.value);
   }, []);
 
+  const handlePenaltyDeducted = useCallback((valuePenalty: number, timePenalty: number) => {
+    setPlayerTotalValue((val) => Math.max(0, val - valuePenalty));
+    setTimeElapsed((t) => Math.min(heist.timeBudget, t + timePenalty));
+  }, [heist.timeBudget]);
+
   const handleAbort = () => {
     soundFx.playClick();
     setIsFinished(true);
@@ -89,15 +94,17 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
         gap: '24px',
         alignItems: 'stretch'
       }}>
-        {/* Panel 1: Enlarged Operator Panel with High-Res Running Character */}
+        {/* Panel 1: Enlarged Operator Panel with Guards and Running Character */}
         <div style={{ minWidth: 0 }}>
           <PlayerPanel
             rooms={heist.rooms}
+            guards={heist.guards}
             timeBudget={heist.timeBudget}
             timeRemaining={timeRemaining}
             timeElapsed={timeElapsed}
             onRecordAction={handleRecordAction}
             onLootSuccess={handleLootSuccess}
+            onPenaltyDeducted={handlePenaltyDeducted}
             playerTotalValue={playerTotalValue}
             isFinished={isFinished}
             lootedRoomIds={lootedRoomIds}

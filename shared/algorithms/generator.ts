@@ -1,4 +1,4 @@
-import { Room, Heist } from '../types.js';
+import { Room, Heist, Guard, GuardPatrolWaypoint } from '../types.js';
 
 interface RoomTemplate {
   name: string;
@@ -203,9 +203,50 @@ export function generateHeist(options: GenerateHeistOptions = {}): Heist {
       securityLevel: template.securityLevel,
       icon: template.icon,
       value,
-      timeCost
+      timeCost,
+      guarded: false
     };
   });
+
+  // Generate 1-2 Guard Patrol Routes
+  const guardCount = difficulty === 'Mastermind' || difficulty === 'Impossible' ? 2 : 1;
+  const guards: Guard[] = [];
+
+  // Guard 1: Patrols odd-indexed or high-value rooms
+  const guard1Rooms = rooms.filter((_, i) => i % 2 === 0 || i === 0).slice(0, 3);
+  if (guard1Rooms.length > 0) {
+    guard1Rooms.forEach((r) => { r.guarded = true; });
+    const route: GuardPatrolWaypoint[] = guard1Rooms.map((r) => ({
+      roomId: r.id,
+      stayDuration: 6 // 6 seconds inspection per room
+    }));
+
+    guards.push({
+      id: 'guard_alpha',
+      name: 'Sentry Drone Alpha',
+      color: '#ef4444',
+      patrolRoute: route,
+      travelSpeed: 120
+    });
+  }
+
+  // Guard 2 (if 2 guards requested): Patrols remaining rooms
+  if (guardCount > 1 && rooms.length >= 4) {
+    const guard2Rooms = rooms.filter((_, i) => i % 2 !== 0).slice(0, 3);
+    guard2Rooms.forEach((r) => { r.guarded = true; });
+    const route2: GuardPatrolWaypoint[] = guard2Rooms.map((r) => ({
+      roomId: r.id,
+      stayDuration: 7
+    }));
+
+    guards.push({
+      id: 'guard_omega',
+      name: 'Sentry Drone Omega',
+      color: '#f59e0b',
+      patrolRoute: route2,
+      travelSpeed: 110
+    });
+  }
 
   const heistNames = [
     'Operation Midnight Mirage',
@@ -223,6 +264,7 @@ export function generateHeist(options: GenerateHeistOptions = {}): Heist {
     name: randomName,
     difficulty,
     rooms,
+    guards,
     timeBudget,
     createdAt: Date.now()
   };

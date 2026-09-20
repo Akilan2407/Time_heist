@@ -1,17 +1,24 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Room, RoomPosition, CharacterStatus, CharacterState, MovementLogEntry, PlayerAction } from '../../../../shared/types.js';
-import { computeRoomPositions } from '../../../../shared/utils/movement.js';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { Room, RoomPosition, CharacterStatus, CharacterState, MovementLogEntry, PlayerAction, Guard } from '../../../../shared/types.js';
+import { computeRoomPositions, getGuardPositionAtTime } from '../../../../shared/utils/movement.js';
 import { VaultCanvas } from '../VaultCanvas.js';
-import { User, CheckCircle2, Lock, Zap, DollarSign, Clock, Sparkles, Layers, ListFilter } from 'lucide-react';
+import { User, CheckCircle2, Lock, Zap, DollarSign, Clock, Sparkles, Layers, ListFilter, ShieldAlert, AlertOctagon, Flame } from 'lucide-react';
 import { soundFx } from '../../utils/audio.js';
+
+// Configurable Stealth Risk Constants
+export const GUARD_DETECTION_DISTANCE = 46; // Pixel collision tolerance
+export const CAUGHT_VALUE_PENALTY = 25;      // $25k loot confiscated on security breach
+export const CAUGHT_TIME_PENALTY = 5;       // 5 seconds alarm penalty
 
 interface PlayerPanelProps {
   rooms: Room[];
+  guards?: Guard[];
   timeBudget: number;
   timeRemaining: number;
   timeElapsed: number;
   onRecordAction: (action: PlayerAction, movementEntries: MovementLogEntry[]) => void;
   onLootSuccess: (room: Room) => void;
+  onPenaltyDeducted?: (valuePenalty: number, timePenalty: number) => void;
   playerTotalValue: number;
   isFinished: boolean;
   lootedRoomIds: Set<string>;
@@ -19,19 +26,23 @@ interface PlayerPanelProps {
 
 export const PlayerPanel: React.FC<PlayerPanelProps> = ({
   rooms,
+  guards = [],
   timeBudget,
   timeRemaining,
   timeElapsed,
   onRecordAction,
   onLootSuccess,
+  onPenaltyDeducted,
   playerTotalValue,
   isFinished,
   lootedRoomIds
 }) => {
   const [viewMode, setViewMode] = useState<'blueprint' | 'tactical'>('blueprint');
   const [hintActive, setHintActive] = useState(false);
+  const [breachAlert, setBreachAlert] = useState<{ active: boolean; message: string; guardName: string } | null>(null);
+  const [isStunned, setIsStunned] = useState(false);
 
-  // Compute fixed 2D room positions for spacious canvas (740px width x 440px height)
+  // Compute fixed 2D room positions
   const roomPositions = useMemo(() => computeRoomPositions(rooms, 740, 440), [rooms]);
   const posMap = useMemo(() => new Map(roomPositions.map((p) => [p.roomId, p])), [roomPositions]);
   const roomMap = useMemo(() => new Map(rooms.map((r) => [r.id, r])), [rooms]);
@@ -49,8 +60,17 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
   const timeElapsedRef = useRef(timeElapsed);
   timeElapsedRef.current = timeElapsed;
 
-  const isFinishedRef = useRef(isFinished);
-  isFinishedRef.current = isFinished;
+  const charStatusRef = useRef(charStatus);
+  charStatusRef.current = charStatus;
+
+  const currentTargetRef = useRef(currentTargetRoomId);
+  currentTargetRef.current = currentTargetRoomId;
+
+  const charPosRef = useRef({ x: charX, y: charY });
+  charPosRef.current = { x: charX, y: charY };
+
+  const activeLockpickIntervalRef = useRef<any>(null);
+  const lastCaughtTimestampRef = useRef<number>(-10);
 
   // Best unlooted room for greedy hint power-up
   const unlootedRooms = rooms.filter((r) => !lootedRoomIds.has(r.id) && r.timeCost <= timeRemaining);
@@ -60,16 +80,73 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
 
   // Queue click handler
   const handleQueueRoom = (room: Room) => {
-    if (isFinished || lootedRoomIds.has(room.id) || queue.includes(room.id) || currentTargetRoomId === room.id) {
+    if (isFinished || isStunned || lootedRoomIds.has(room.id) || queue.includes(room.id) || currentTargetRoomId === room.id) {
       return;
     }
     soundFx.playLockpickTick();
     setQueue((prev) => [...prev, room.id]);
   };
 
+  // Real-Time Stealth Collision Detection with Sentry Guards
+  useEffect(() => {
+    if (isFinished || guards.length === 0) return;
+
+    // Check collision between player and guards
+    for (const guard of guards) {
+      const gPos = getGuardPositionAtTime(guard, roomPositions, timeElapsed);
+      const playerX = charPosRef.current.x;
+      const playerY = charPosRef.current.y;
+      const dist = Math.hypot(playerX - gPos.x, playerY - gPos.y);
+
+      // Trigger breach if close and player is looting or within room
+      const cooldownPassed = (timeElapsed - lastCaughtTimestampRef.current) > 4.0;
+      if (dist < GUARD_DETECTION_DISTANCE && cooldownPassed && (charStatusRef.current === 'looting' || charStatusRef.current === 'running')) {
+        lastCaughtTimestampRef.current = timeElapsed;
+
+        // Cancel active looting lockpick
+        if (activeLockpickIntervalRef.current) {
+          clearInterval(activeLockpickIntervalRef.current);
+          activeLockpickIntervalRef.current = null;
+        }
+
+        soundFx.playHeistAlarm();
+        setCharStatus('caught');
+        setIsStunned(true);
+        setLootingProgress(0);
+
+        setBreachAlert({
+          active: true,
+          message: `SPOTTED BY ${guard.name.toUpperCase()}! -$${CAUGHT_VALUE_PENALTY}k FINE & -${CAUGHT_TIME_PENALTY}s ALARM SURGE`,
+          guardName: guard.name
+        });
+
+        if (onPenaltyDeducted) {
+          onPenaltyDeducted(CAUGHT_VALUE_PENALTY, CAUGHT_TIME_PENALTY);
+        }
+
+        const caughtEntry: MovementLogEntry = {
+          timestamp: timeElapsed,
+          roomId: currentTargetRef.current || 'corridor',
+          eventType: 'caught'
+        };
+        onRecordAction({ roomId: currentTargetRef.current || 'corridor', timestamp: timeElapsed }, [caughtEntry]);
+
+        // Stun recovery after 2.5 seconds
+        setTimeout(() => {
+          setIsStunned(false);
+          setCharStatus('idle');
+          setCurrentTargetRoomId(null);
+          setBreachAlert(null);
+        }, 2500);
+
+        break;
+      }
+    }
+  }, [timeElapsed, guards, isFinished, roomPositions, onPenaltyDeducted, onRecordAction]);
+
   // State machine loop: pops next room from queue when idle
   useEffect(() => {
-    if (isFinished || charStatus !== 'idle' || queue.length === 0) {
+    if (isFinished || isStunned || charStatus !== 'idle' || queue.length === 0) {
       return;
     }
 
@@ -81,7 +158,6 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
       return;
     }
 
-    // Calculate distance and duration at constant ~180 px/sec
     const dx = targetPos.x - charX;
     const dy = targetPos.y - charY;
     const dist = Math.hypot(dx, dy);
@@ -103,8 +179,9 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
       eventType: 'lootStart'
     };
 
-    // Schedule arrival
     const arrivalTimer = setTimeout(() => {
+      if (charStatusRef.current === 'caught') return;
+
       const arrivedTimestamp = timeElapsedRef.current;
       setCharStatus('looting');
       setTransitionDuration(0);
@@ -116,17 +193,17 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
         eventType: 'arrived'
       };
 
-      // Looting lockpick progress interval
       const lootDurationMs = targetRoom.timeCost * 1000;
       const startTime = Date.now();
 
-      const progressInterval = setInterval(() => {
+      activeLockpickIntervalRef.current = setInterval(() => {
         const elapsedMs = Date.now() - startTime;
         const progress = Math.min(1, elapsedMs / lootDurationMs);
         setLootingProgress(progress);
 
         if (progress >= 1) {
-          clearInterval(progressInterval);
+          clearInterval(activeLockpickIntervalRef.current);
+          activeLockpickIntervalRef.current = null;
           soundFx.playLootSuccess();
 
           const completeTimestamp = timeElapsedRef.current;
@@ -153,7 +230,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
     return () => {
       clearTimeout(arrivalTimer);
     };
-  }, [charStatus, queue, charX, charY, posMap, roomMap, isFinished, onRecordAction, onLootSuccess]);
+  }, [charStatus, queue, charX, charY, posMap, roomMap, isFinished, isStunned, onRecordAction, onLootSuccess]);
 
   const disabledRoomIds = useMemo(() => {
     const set = new Set<string>();
@@ -166,19 +243,49 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
   }, [rooms, timeRemaining, lootedRoomIds]);
 
   return (
-    <div className="glass-panel glass-panel-glow-player" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className={`glass-panel glass-panel-glow-player ${breachAlert ? 'breach-alert-shake' : ''}`} style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%', borderColor: breachAlert ? '#ef4444' : undefined }}>
+      
+      {/* Security Breach Warning Banner */}
+      {breachAlert && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(239,68,68,0.9), rgba(185,28,28,0.95))',
+          color: '#ffffff',
+          padding: '10px 16px',
+          borderRadius: '10px',
+          marginBottom: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          boxShadow: '0 0 25px rgba(239,68,68,0.7)',
+          animation: 'pulseGlow 0.8s infinite'
+        }}>
+          <ShieldAlert size={24} className="animate-pulse-glow" />
+          <div style={{ flex: 1 }}>
+            <div className="font-display" style={{ fontWeight: 800, fontSize: '0.9rem', letterSpacing: '0.04em' }}>
+              🚨 SECURITY BREACH DETECTED!
+            </div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>
+              {breachAlert.message}
+            </div>
+          </div>
+          <span className="badge" style={{ background: 'rgba(0,0,0,0.5)', color: '#ffffff', fontSize: '0.7rem' }}>
+            STUNNED (2s)
+          </span>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(0,240,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00f0ff' }}>
-            <User size={22} />
+          <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: isStunned ? 'rgba(239,68,68,0.25)' : 'rgba(0,240,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isStunned ? '#ef4444' : '#00f0ff' }}>
+            {isStunned ? <Flame size={22} className="animate-pulse-glow" /> : <User size={22} />}
           </div>
           <div>
-            <h3 className="font-display" style={{ fontSize: '1.25rem', color: '#00f0ff', fontWeight: 800 }}>
+            <h3 className="font-display" style={{ fontSize: '1.25rem', color: isStunned ? '#ef4444' : '#00f0ff', fontWeight: 800 }}>
               YOU (OPERATOR)
             </h3>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              {charStatus === 'running' ? '⚡ Sprinting to target room...' : charStatus === 'looting' ? '🔓 Hacking vault terminal...' : '🟢 Ready for infiltration orders'}
+              {isStunned ? '⚠️ REBOOTING OPTICAL CAMOUFLAGE...' : charStatus === 'running' ? '⚡ Sprinting to target room...' : charStatus === 'looting' ? '🔓 Hacking vault terminal...' : '🟢 Ready for infiltration orders'}
             </div>
           </div>
         </div>
@@ -223,7 +330,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
         </button>
       </div>
 
-      {/* Main Interactive Arena: Enlarged Blueprint Map */}
+      {/* Main Interactive Arena: Enlarged Blueprint Map with Guards */}
       <div style={{ flex: 1, minHeight: '440px', display: 'flex', flexDirection: 'column' }}>
         {viewMode === 'blueprint' ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -236,6 +343,8 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
               onRoomClick={handleQueueRoom}
               disabledRoomIds={disabledRoomIds}
               hintRoomId={hintActive && bestRatioRoom ? bestRatioRoom.id : null}
+              guards={guards}
+              currentTime={timeElapsed}
               characters={[
                 {
                   x: charX,
@@ -249,10 +358,10 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
               ]}
               width={740}
               height={440}
-              isInteractive={!isFinished}
+              isInteractive={!isFinished && !isStunned}
             />
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '10px' }}>
-              💡 Click any vault portal on the floor plan to queue movement. The boy will sprint & hack each terminal!
+              🛡️ <strong>Stealth Warning:</strong> Avoid sentry drone lasers! Looting while a guard inspects a room triggers security breach penalties.
             </div>
           </div>
         ) : (
@@ -263,7 +372,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
               const queueIdx = queue.indexOf(room.id);
               const isQueued = queueIdx !== -1;
               const canAfford = room.timeCost <= timeRemaining;
-              const isDisabled = isLooted || isFinished || (!isCurrent && !isQueued && !canAfford);
+              const isDisabled = isLooted || isFinished || isStunned || (!isCurrent && !isQueued && !canAfford);
 
               return (
                 <div
@@ -294,8 +403,15 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                   }}
                 >
                   <div>
-                    <div className="font-display" style={{ fontWeight: 700, fontSize: '0.95rem', color: isLooted ? '#34d399' : '#f8fafc' }}>
-                      {room.name}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span className="font-display" style={{ fontWeight: 700, fontSize: '0.95rem', color: isLooted ? '#34d399' : '#f8fafc' }}>
+                        {room.name}
+                      </span>
+                      {room.guarded && (
+                        <span className="badge badge-guard" style={{ fontSize: '0.62rem' }}>
+                          PATROLLED
+                        </span>
+                      )}
                     </div>
                     <div style={{ display: 'flex', gap: '14px', fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                       <span>Cost: <strong style={{ color: '#00f0ff' }}>{room.timeCost}s</strong></span>
