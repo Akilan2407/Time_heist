@@ -164,6 +164,12 @@ body {
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
 }
 
+.btn-accent-cyan {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  color: #050a14;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
 /* Badges */
 .badge {
   display: inline-flex;
@@ -196,8 +202,106 @@ body {
   color: #f87171;
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
+.badge-guard {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.badge-fog {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
 
-/* Animations */
+/* Character, Guard & Fog Animations */
+@keyframes run-bob {
+  0%, 100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(3deg);
+  }
+}
+
+@keyframes loot-hack {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  25% {
+    transform: scale(1.08) translateY(-2px);
+    filter: drop-shadow(0 0 16px currentColor);
+  }
+  75% {
+    transform: scale(0.96) translateY(1px);
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+}
+
+@keyframes idle-breathe {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes radar-ping {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes guard-search-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes security-breach-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-6px, 4px); }
+  40% { transform: translate(6px, -4px); }
+  60% { transform: translate(-4px, -2px); }
+  80% { transform: translate(4px, 2px); }
+}
+
+@keyframes scout-reticle-spin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.15); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.scout-reticle-anim {
+  animation: scout-reticle-spin 4s linear infinite;
+}
+
+.breach-alert-shake {
+  animation: security-breach-shake 0.4s ease-in-out infinite;
+}
+
+.character-sprite-running {
+  animation: run-bob 0.28s ease-in-out infinite;
+}
+
+.character-sprite-looting {
+  animation: loot-hack 0.4s ease-in-out infinite;
+}
+
+.character-sprite-idle {
+  animation: idle-breathe 2.5s ease-in-out infinite;
+}
+
+/* General Animations */
 @keyframes pulseGlow {
   0%, 100% {
     opacity: 0.6;
@@ -262,17 +366,4 @@ input[type=range]::-webkit-slider-thumb {
 }
 input[type=range]::-webkit-slider-thumb:hover {
   transform: scale(1.25);
-}
-
-/* Responsive grid layouts */
-.layout-container {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 16px 24px;
-}
-
-@media (max-width: 1024px) {
-  .layout-container {
-    padding: 12px 16px;
-  }
 }

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Heist, HeistResult, PlayerAction, Room } from '../../../shared/types.js';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Heist, HeistResult, PlayerAction, MovementLogEntry, Room } from '../../../shared/types.js';
 import { TimerHeader } from './live/TimerHeader.js';
 import { PlayerPanel } from './live/PlayerPanel.js';
 import { DPCrewPanel } from './live/DPCrewPanel.js';
@@ -9,7 +9,7 @@ import { soundFx } from '../utils/audio.js';
 interface LiveHeistViewProps {
   heist: Heist;
   heistResult: HeistResult;
-  onFinishHeist: (actions: PlayerAction[]) => void;
+  onFinishHeist: (actions: PlayerAction[], movementLog: MovementLogEntry[]) => void;
 }
 
 export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
@@ -23,8 +23,9 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
   // Player state
   const [lootedRoomIds, setLootedRoomIds] = useState<Set<string>>(new Set());
   const [playerTotalValue, setPlayerTotalValue] = useState(0);
-  const [activeLootingRoom, setActiveLootingRoom] = useState<{ room: Room; startElapsed: number } | null>(null);
   const [playerActions, setPlayerActions] = useState<PlayerAction[]>([]);
+  const [playerMovementLog, setPlayerMovementLog] = useState<MovementLogEntry[]>([]);
+  const prevTickSecondRef = useRef<number>(-1);
 
   const roomMap = useMemo(() => new Map(heist.rooms.map((r) => [r.id, r])), [heist.rooms]);
 
@@ -36,31 +37,13 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
       setTimeElapsed((prev) => {
         const next = Math.min(heist.timeBudget, prev + 0.1);
 
-        // Check if player is currently looting a room
-        if (activeLootingRoom) {
-          const lootDuration = activeLootingRoom.room.timeCost;
-          const timeSpentOnLoot = next - activeLootingRoom.startElapsed;
-
-          if (timeSpentOnLoot >= lootDuration) {
-            // Room lockpick completed!
-            soundFx.playLootSuccess();
-            setLootedRoomIds((old) => new Set(old).add(activeLootingRoom.room.id));
-            setPlayerTotalValue((val) => val + activeLootingRoom.room.value);
-            setPlayerActions((acts) => [
-              ...acts,
-              { roomId: activeLootingRoom.room.id, timestamp: activeLootingRoom.startElapsed }
-            ]);
-            setActiveLootingRoom(null);
-          }
-        }
-
         // Check if time is up
         if (next >= heist.timeBudget) {
           clearInterval(interval);
           setIsFinished(true);
           soundFx.playHeistAlarm();
           setTimeout(() => {
-            onFinishHeist(playerActions);
+            onFinishHeist(playerActions, playerMovementLog);
           }, 1200);
         }
 
@@ -69,33 +52,42 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
     }, 100);
 
     return () => clearInterval(interval);
-  }, [isFinished, activeLootingRoom, heist.timeBudget, onFinishHeist, playerActions]);
+  }, [isFinished, heist.timeBudget, onFinishHeist, playerActions, playerMovementLog]);
 
-  const handleLootRoom = (room: Room) => {
-    if (activeLootingRoom || isFinished) return;
-    const remaining = heist.timeBudget - timeElapsed;
-    if (room.timeCost > remaining) return;
+  // Play soft tick sound only during the final 10 seconds of the countdown
+  useEffect(() => {
+    const remaining = Math.ceil(Math.max(0, heist.timeBudget - timeElapsed));
+    if (remaining <= 10 && remaining > 0 && remaining !== prevTickSecondRef.current && !isFinished) {
+      prevTickSecondRef.current = remaining;
+      soundFx.playCountdownTick();
+    }
+  }, [timeElapsed, heist.timeBudget, isFinished]);
 
-    setActiveLootingRoom({
-      room,
-      startElapsed: timeElapsed
-    });
-  };
+  const handleRecordAction = useCallback((action: PlayerAction, movementEntries: MovementLogEntry[]) => {
+    setPlayerActions((prev) => [...prev, action]);
+    setPlayerMovementLog((prev) => [...prev, ...movementEntries]);
+  }, []);
+
+  const handleLootSuccess = useCallback((room: Room) => {
+    setLootedRoomIds((old) => new Set(old).add(room.id));
+    setPlayerTotalValue((val) => val + room.value);
+  }, []);
+
+  const handlePenaltyDeducted = useCallback((valuePenalty: number, timePenalty: number) => {
+    setPlayerTotalValue((val) => Math.max(0, val - valuePenalty));
+    setTimeElapsed((t) => Math.min(heist.timeBudget, t + timePenalty));
+  }, [heist.timeBudget]);
 
   const handleAbort = () => {
     soundFx.playClick();
     setIsFinished(true);
-    onFinishHeist(playerActions);
+    onFinishHeist(playerActions, playerMovementLog);
   };
 
   const timeRemaining = Math.max(0, heist.timeBudget - timeElapsed);
 
-  const activeProgress = activeLootingRoom
-    ? Math.min(1, Math.max(0, (timeElapsed - activeLootingRoom.startElapsed) / activeLootingRoom.room.timeCost))
-    : 0;
-
   return (
-    <div className="layout-container">
+    <div style={{ maxWidth: '1680px', margin: '0 auto', padding: '16px 24px' }}>
       {/* Master Countdown Timer Header */}
       <TimerHeader
         timeRemaining={timeRemaining}
@@ -105,48 +97,55 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
         isFinished={isFinished}
       />
 
-      {/* 3-Column Live View HUD */}
+      {/* Prominent Hero Layout: Operator Panel is larger & wide */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-        gap: '20px',
+        gridTemplateColumns: 'minmax(600px, 1.85fr) minmax(320px, 1fr) minmax(320px, 1fr)',
+        gap: '24px',
         alignItems: 'stretch'
       }}>
-        {/* Panel 1: Player Operator */}
-        <PlayerPanel
-          rooms={heist.rooms}
-          timeBudget={heist.timeBudget}
-          timeRemaining={timeRemaining}
-          timeElapsed={timeElapsed}
-          lootedRoomIds={lootedRoomIds}
-          activeLootingRoomId={activeLootingRoom ? activeLootingRoom.room.id : null}
-          activeLootingProgress={activeProgress}
-          onLootRoom={handleLootRoom}
-          playerTotalValue={playerTotalValue}
-          isFinished={isFinished}
-        />
+        {/* Panel 1: Enlarged Operator Panel with Guards and Running Character */}
+        <div style={{ minWidth: 0 }}>
+          <PlayerPanel
+            rooms={heist.rooms}
+            guards={heist.guards}
+            timeBudget={heist.timeBudget}
+            timeRemaining={timeRemaining}
+            timeElapsed={timeElapsed}
+            onRecordAction={handleRecordAction}
+            onLootSuccess={handleLootSuccess}
+            onPenaltyDeducted={handlePenaltyDeducted}
+            playerTotalValue={playerTotalValue}
+            isFinished={isFinished}
+            lootedRoomIds={lootedRoomIds}
+          />
+        </div>
 
         {/* Panel 2: DP Crew (Precomputed) */}
-        <DPCrewPanel
-          rooms={heist.rooms}
-          dpPath={heistResult.dpPath}
-          timeElapsed={timeElapsed}
-          timeBudget={heist.timeBudget}
-          dpCellsComputed={heistResult.dpCellsComputed}
-          roomMap={roomMap}
-        />
+        <div style={{ minWidth: 0 }}>
+          <DPCrewPanel
+            rooms={heist.rooms}
+            dpPath={heistResult.dpPath}
+            timeElapsed={timeElapsed}
+            timeBudget={heist.timeBudget}
+            dpCellsComputed={heistResult.dpCellsComputed}
+            roomMap={roomMap}
+          />
+        </div>
 
         {/* Panel 3: Branch & Bound Crew (Live Tree) */}
-        <BnBCrewPanel
-          rooms={heist.rooms}
-          bnbTree={heistResult.bnbTree}
-          timeElapsed={timeElapsed}
-          timeBudget={heist.timeBudget}
-          bnbNodesExplored={heistResult.bnbNodesExplored}
-          prunedCount={heistResult.prunedCount}
-          optimalValue={heistResult.optimalValue}
-          roomMap={roomMap}
-        />
+        <div style={{ minWidth: 0 }}>
+          <BnBCrewPanel
+            rooms={heist.rooms}
+            bnbTree={heistResult.bnbTree}
+            timeElapsed={timeElapsed}
+            timeBudget={heist.timeBudget}
+            bnbNodesExplored={heistResult.bnbNodesExplored}
+            prunedCount={heistResult.prunedCount}
+            optimalValue={heistResult.optimalValue}
+            roomMap={roomMap}
+          />
+        </div>
       </div>
     </div>
   );

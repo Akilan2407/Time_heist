@@ -6,13 +6,60 @@ export interface Room {
   description?: string;
   icon?: string;
   securityLevel?: 'Low' | 'Medium' | 'High' | 'Extreme';
+  guarded?: boolean;
+}
+
+export interface RoomPosition {
+  roomId: string;
+  x: number;   // pixel or percentage coordinate
+  y: number;
+}
+
+export interface GuardPatrolWaypoint {
+  roomId: string;
+  stayDuration: number; // seconds the guard inspects this room
+}
+
+export interface Guard {
+  id: string;
+  name: string;
+  color: string;
+  patrolRoute: GuardPatrolWaypoint[]; // sequence of rooms to inspect
+  travelSpeed: number; // pixels per second (e.g. 110)
+}
+
+export interface GuardPositionResult {
+  x: number;
+  y: number;
+  status: 'patrolling' | 'inspecting';
+  currentRoomId: string | null;
+  targetRoomId: string | null;
+  facing: 'left' | 'right';
+  progress: number; // 0 to 1
+}
+
+export type CharacterStatus = 'idle' | 'running' | 'looting' | 'caught';
+
+export interface CharacterState {
+  x: number;
+  y: number;
+  status: CharacterStatus;
+  currentTargetRoomId: string | null;
+  queue: string[];        // roomIds queued up, in order
+}
+
+export interface MovementLogEntry {
+  timestamp: number;      // ms or seconds since heist start
+  roomId: string;
+  eventType: 'arrived' | 'lootStart' | 'lootComplete' | 'caught';
 }
 
 export interface Heist {
   id: string;
   name: string;
-  difficulty: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible';
+  difficulty: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible' | 'Custom';
   rooms: Room[];
+  guards: Guard[];
   timeBudget: number;   // total seconds available
   createdAt: number;
 }
@@ -59,6 +106,7 @@ export interface HeistResult {
   bnbPath: PathItem[];
   bnbTree: BnBStep[];
   playerPath: PlayerAction[];
+  playerMovementLog?: MovementLogEntry[];
   playerTotalValue: number;
   playerValidPath: boolean;
   bnbNodesExplored: number;
@@ -66,6 +114,11 @@ export interface HeistResult {
   bnbTimeMs: number;
   dpTimeMs: number;
   prunedCount: number;
+  breachCount?: number;
+  greedyValue?: number;
+  greedyPath?: PathItem[];
+  greedyTimeMs?: number;
+  greedyTotalTime?: number;
 }
 
 export interface PlayerStateAtTime {
