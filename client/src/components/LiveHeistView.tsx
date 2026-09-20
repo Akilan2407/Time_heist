@@ -25,6 +25,7 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
   const [playerTotalValue, setPlayerTotalValue] = useState(0);
   const [playerActions, setPlayerActions] = useState<PlayerAction[]>([]);
   const [playerMovementLog, setPlayerMovementLog] = useState<MovementLogEntry[]>([]);
+  const prevTickSecondRef = useRef<number>(-1);
 
   const roomMap = useMemo(() => new Map(heist.rooms.map((r) => [r.id, r])), [heist.rooms]);
 
@@ -52,6 +53,15 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
 
     return () => clearInterval(interval);
   }, [isFinished, heist.timeBudget, onFinishHeist, playerActions, playerMovementLog]);
+
+  // Play soft tick sound only during the final 10 seconds of the countdown
+  useEffect(() => {
+    const remaining = Math.ceil(Math.max(0, heist.timeBudget - timeElapsed));
+    if (remaining <= 10 && remaining > 0 && remaining !== prevTickSecondRef.current && !isFinished) {
+      prevTickSecondRef.current = remaining;
+      soundFx.playCountdownTick();
+    }
+  }, [timeElapsed, heist.timeBudget, isFinished]);
 
   const handleRecordAction = useCallback((action: PlayerAction, movementEntries: MovementLogEntry[]) => {
     setPlayerActions((prev) => [...prev, action]);

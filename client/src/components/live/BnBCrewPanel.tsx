@@ -1,6 +1,7 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { BnBStep, Room } from '../../../../shared/types.js';
 import { GitBranch, ShieldX, CheckCircle2, Search, Maximize2, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { soundFx } from '../../utils/audio.js';
 
 interface BnBCrewPanelProps {
   rooms: Room[];
@@ -35,6 +36,7 @@ export const BnBCrewPanel: React.FC<BnBCrewPanelProps> = ({
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [selectedNode, setSelectedNode] = useState<BnBStep | null>(null);
+  const prevPrunedCountRef = useRef(0);
 
   // Filter steps visible up to current time elapsed (using simulated timestamp or proportional progress)
   const visibleSteps = useMemo(() => {
@@ -46,6 +48,20 @@ export const BnBCrewPanel: React.FC<BnBCrewPanelProps> = ({
 
     return bnbTree.filter((step) => step.timestamp <= maxAllowedTimestamp);
   }, [bnbTree, timeElapsed, timeBudget]);
+
+  const livePrunedCount = visibleSteps.filter((s) => s.status === 'pruned').length;
+
+  // Play distinct "cut" / "snip" sound whenever a new branch is marked pruned
+  useEffect(() => {
+    if (timeElapsed === 0) {
+      prevPrunedCountRef.current = 0;
+      return;
+    }
+    if (livePrunedCount > prevPrunedCountRef.current) {
+      soundFx.playPruneNode();
+      prevPrunedCountRef.current = livePrunedCount;
+    }
+  }, [livePrunedCount, timeElapsed]);
 
   // Compute current live best value found so far
   const currentBestValue = useMemo(() => {
@@ -131,8 +147,6 @@ export const BnBCrewPanel: React.FC<BnBCrewPanelProps> = ({
       height: svgHeight
     };
   }, [visibleSteps]);
-
-  const livePrunedCount = visibleSteps.filter((s) => s.status === 'pruned').length;
 
   return (
     <div className="glass-panel glass-panel-glow-bnb" style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
