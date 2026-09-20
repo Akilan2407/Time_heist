@@ -3,16 +3,19 @@ import { Room, RoomPosition, CharacterStatus, Guard } from '../../../shared/type
 import { Character, CharacterProps } from './Character.js';
 import { GuardMarker } from './GuardMarker.js';
 import { getGuardPositionAtTime } from '../../../shared/utils/movement.js';
-import { Lock, CheckCircle2, ShieldAlert, Sparkles, DollarSign, Clock, ShieldCheck, Eye } from 'lucide-react';
+import { Lock, CheckCircle2, ShieldAlert, Sparkles, DollarSign, Clock, ShieldCheck, Eye, HelpCircle, Crosshair, Radio } from 'lucide-react';
 import { soundFx } from '../utils/audio.js';
 
 export interface VaultCanvasProps {
   rooms: Room[];
   roomPositions: RoomPosition[];
   lootedRoomIds: Set<string> | string[];
+  revealedRoomIds?: Set<string> | string[];
   queue?: string[];
   activeRoomId?: string | null;
   onRoomClick?: (room: Room) => void;
+  onScoutRoom?: (room: Room) => void;
+  isScoutMode?: boolean;
   characters: CharacterProps[];
   guards?: Guard[];
   currentTime?: number;
@@ -28,9 +31,12 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
   rooms,
   roomPositions,
   lootedRoomIds,
+  revealedRoomIds = new Set(),
   queue = [],
   activeRoomId = null,
   onRoomClick,
+  onScoutRoom,
+  isScoutMode = false,
   characters,
   guards = [],
   currentTime = 0,
@@ -42,6 +48,7 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
   isInteractive = true
 }) => {
   const lootedSet = lootedRoomIds instanceof Set ? lootedRoomIds : new Set(lootedRoomIds);
+  const revealedSet = revealedRoomIds instanceof Set ? revealedRoomIds : new Set(revealedRoomIds);
   const posMap = new Map(roomPositions.map((p) => [p.roomId, p]));
 
   // Connect sequential rooms with high-tech conduit corridors
@@ -71,11 +78,12 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
         height: `${height}px`,
         overflow: 'hidden',
         background: 'radial-gradient(ellipse at center, rgba(15, 25, 45, 0.95) 0%, rgba(5, 8, 15, 0.98) 100%)',
-        border: '1.5px solid rgba(0, 240, 255, 0.35)',
-        boxShadow: '0 0 35px rgba(0, 0, 0, 0.7), inset 0 0 50px rgba(0, 240, 255, 0.08)',
+        border: isScoutMode ? '2px solid #06b6d4' : '1.5px solid rgba(0, 240, 255, 0.35)',
+        boxShadow: isScoutMode ? '0 0 35px rgba(6, 182, 212, 0.5)' : '0 0 35px rgba(0, 0, 0, 0.7), inset 0 0 50px rgba(0, 240, 255, 0.08)',
         margin: '0 auto',
         borderRadius: '16px',
-        userSelect: 'none'
+        userSelect: 'none',
+        cursor: isScoutMode ? 'crosshair' : 'default'
       }}
     >
       {/* Blueprint Header HUD */}
@@ -96,6 +104,11 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
           <span className="badge badge-player" style={{ fontSize: '0.72rem', padding: '3px 10px', background: 'rgba(0,240,255,0.2)' }}>
             {title}
           </span>
+          {isScoutMode && (
+            <span className="badge" style={{ background: 'rgba(6, 182, 212, 0.3)', color: '#06b6d4', border: '1px solid #06b6d4', fontSize: '0.7rem' }}>
+              <Radio size={12} className="animate-pulse-glow" /> SCOUT RECON MODE ACTIVE
+            </span>
+          )}
           {guards.length > 0 && (
             <span className="badge badge-guard" style={{ fontSize: '0.68rem' }}>
               <Eye size={11} /> {guards.length} SENTRY {guards.length > 1 ? 'DRONES' : 'DRONE'} ACTIVE
@@ -221,6 +234,7 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
         if (!pos) return null;
 
         const isLooted = lootedSet.has(room.id);
+        const isRevealed = revealedSet.has(room.id);
         const isActive = activeRoomId === room.id;
         const queueIndex = queue.indexOf(room.id);
         const isQueued = queueIndex !== -1;
@@ -236,7 +250,10 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
           <div
             key={room.id}
             onClick={() => {
-              if (isInteractive && onRoomClick && !isLooted && !isDisabled) {
+              if (!isInteractive) return;
+              if (isScoutMode && onScoutRoom && !isRevealed) {
+                onScoutRoom(room);
+              } else if (onRoomClick && !isLooted && !isDisabled) {
                 onRoomClick(room);
               }
             }}
@@ -246,11 +263,11 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
               top: `${pos.y}px`,
               transform: 'translate(-50%, -50%)',
               zIndex: 10,
-              cursor: isInteractive && !isLooted && !isDisabled ? 'pointer' : 'default',
+              cursor: isInteractive && (!isLooted && !isDisabled || (isScoutMode && !isRevealed)) ? (isScoutMode && !isRevealed ? 'crosshair' : 'pointer') : 'default',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              opacity: isDisabled ? 0.35 : 1,
+              opacity: isDisabled && !isLooted ? 0.35 : 1,
               transition: 'transform 0.15s ease'
             }}
           >
@@ -264,6 +281,22 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                   borderRadius: '50%',
                   border: '2.5px solid #00f0ff',
                   animation: 'radar-ping 1.2s ease-out infinite',
+                  pointerEvents: 'none'
+                }}
+              />
+            )}
+
+            {/* Scout Target Reticle during Scout Mode on unrevealed rooms */}
+            {isScoutMode && !isRevealed && (
+              <div
+                className="scout-reticle-anim"
+                style={{
+                  position: 'absolute',
+                  width: '68px',
+                  height: '68px',
+                  borderRadius: '50%',
+                  border: '2px dashed #06b6d4',
+                  boxShadow: '0 0 16px rgba(6, 182, 212, 0.6)',
                   pointerEvents: 'none'
                 }}
               />
@@ -297,6 +330,8 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                   ? 'rgba(239, 68, 68, 0.3)'
                   : isActive
                   ? 'rgba(0, 240, 255, 0.3)'
+                  : !isRevealed
+                  ? 'rgba(30, 41, 59, 0.85)'
                   : isHint
                   ? 'rgba(245, 158, 11, 0.3)'
                   : isQueued
@@ -308,6 +343,8 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                   ? '2.5px solid #ef4444'
                   : isActive
                   ? '2.5px solid #00f0ff'
+                  : !isRevealed
+                  ? '1.5px dashed rgba(148, 163, 184, 0.4)'
                   : isHint
                   ? '2.5px solid #f59e0b'
                   : isQueued
@@ -319,6 +356,8 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                   ? '0 0 28px rgba(239, 68, 68, 0.8)'
                   : isActive
                   ? '0 0 26px rgba(0, 240, 255, 0.75)'
+                  : !isRevealed
+                  ? '0 0 10px rgba(0, 0, 0, 0.5)'
                   : isHint
                   ? '0 0 22px rgba(245, 158, 11, 0.65)'
                   : isQueued
@@ -339,6 +378,8 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                 <ShieldAlert size={24} color="#ef4444" className="animate-pulse-glow" />
               ) : isActive ? (
                 <Sparkles size={24} color="#00f0ff" className="animate-pulse-glow" />
+              ) : !isRevealed ? (
+                <HelpCircle size={22} color="#94a3b8" />
               ) : (
                 <Lock size={22} color={isHint ? '#f59e0b' : '#94a3b8'} />
               )}
@@ -389,14 +430,14 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
               )}
             </div>
 
-            {/* Room Info Label */}
+            {/* Room Info Label (Fog-of-War support) */}
             <div style={{ textAlign: 'center', marginTop: '6px', maxWidth: '100px' }}>
               <div
                 className="font-display"
                 style={{
                   fontSize: '0.78rem',
                   fontWeight: 700,
-                  color: isLooted ? '#34d399' : isGuardPresent ? '#ef4444' : '#f8fafc',
+                  color: isLooted ? '#34d399' : isGuardPresent ? '#ef4444' : !isRevealed ? '#94a3b8' : '#f8fafc',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap'
@@ -409,10 +450,10 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                 style={{
                   fontSize: '0.7rem',
                   fontWeight: 600,
-                  color: isLooted ? '#10b981' : '#00f0ff'
+                  color: isLooted ? '#10b981' : !isRevealed ? '#64748b' : '#00f0ff'
                 }}
               >
-                ${room.value}k • {room.timeCost}s
+                {isRevealed || isLooted ? `$${room.value}k • ${room.timeCost}s` : '$?k • ?s'}
               </div>
             </div>
           </div>
