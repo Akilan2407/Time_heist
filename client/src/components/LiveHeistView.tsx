@@ -72,7 +72,7 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
   const timeRemaining = Math.max(0, heist.timeBudget - timeElapsed);
 
   return (
-    <div className="layout-container">
+    <div style={{ maxWidth: '1680px', margin: '0 auto', padding: '16px 24px' }}>
       {/* Master Countdown Timer Header */}
       <TimerHeader
         timeRemaining={timeRemaining}
@@ -82,47 +82,53 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
         isFinished={isFinished}
       />
 
-      {/* 3-Column Live View HUD */}
+      {/* Prominent Hero Layout: Operator Panel is larger & wide */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-        gap: '20px',
+        gridTemplateColumns: 'minmax(600px, 1.85fr) minmax(320px, 1fr) minmax(320px, 1fr)',
+        gap: '24px',
         alignItems: 'stretch'
       }}>
-        {/* Panel 1: Player Operator with Running Character Canvas */}
-        <PlayerPanel
-          rooms={heist.rooms}
-          timeBudget={heist.timeBudget}
-          timeRemaining={timeRemaining}
-          timeElapsed={timeElapsed}
-          onRecordAction={handleRecordAction}
-          onLootSuccess={handleLootSuccess}
-          playerTotalValue={playerTotalValue}
-          isFinished={isFinished}
-          lootedRoomIds={lootedRoomIds}
-        />
+        {/* Panel 1: Enlarged Operator Panel with High-Res Running Character */}
+        <div style={{ minWidth: 0 }}>
+          <PlayerPanel
+            rooms={heist.rooms}
+            timeBudget={heist.timeBudget}
+            timeRemaining={timeRemaining}
+            timeElapsed={timeElapsed}
+            onRecordAction={handleRecordAction}
+            onLootSuccess={handleLootSuccess}
+            playerTotalValue={playerTotalValue}
+            isFinished={isFinished}
+            lootedRoomIds={lootedRoomIds}
+          />
+        </div>
 
         {/* Panel 2: DP Crew (Precomputed) */}
-        <DPCrewPanel
-          rooms={heist.rooms}
-          dpPath={heistResult.dpPath}
-          timeElapsed={timeElapsed}
-          timeBudget={heist.timeBudget}
-          dpCellsComputed={heistResult.dpCellsComputed}
-          roomMap={roomMap}
-        />
+        <div style={{ minWidth: 0 }}>
+          <DPCrewPanel
+            rooms={heist.rooms}
+            dpPath={heistResult.dpPath}
+            timeElapsed={timeElapsed}
+            timeBudget={heist.timeBudget}
+            dpCellsComputed={heistResult.dpCellsComputed}
+            roomMap={roomMap}
+          />
+        </div>
 
         {/* Panel 3: Branch & Bound Crew (Live Tree) */}
-        <BnBCrewPanel
-          rooms={heist.rooms}
-          bnbTree={heistResult.bnbTree}
-          timeElapsed={timeElapsed}
-          timeBudget={heist.timeBudget}
-          bnbNodesExplored={heistResult.bnbNodesExplored}
-          prunedCount={heistResult.prunedCount}
-          optimalValue={heistResult.optimalValue}
-          roomMap={roomMap}
-        />
+        <div style={{ minWidth: 0 }}>
+          <BnBCrewPanel
+            rooms={heist.rooms}
+            bnbTree={heistResult.bnbTree}
+            timeElapsed={timeElapsed}
+            timeBudget={heist.timeBudget}
+            bnbNodesExplored={heistResult.bnbNodesExplored}
+            prunedCount={heistResult.prunedCount}
+            optimalValue={heistResult.optimalValue}
+            roomMap={roomMap}
+          />
+        </div>
       </div>
     </div>
   );

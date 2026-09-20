@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CharacterStatus } from '../../shared/types.js';
 import { Zap, Sparkles, Lock, ShieldCheck } from 'lucide-react';
+import runboyImg from '../assets/runboy.png';
+import { removeWhiteBackground } from '../utils/imageUtils.js';
 
 export interface CharacterProps {
   x: number;
@@ -23,14 +25,37 @@ export const Character: React.FC<CharacterProps> = ({
   transitionDuration = 0.5,
   showLabel = true
 }) => {
+  const [spriteSrc, setSpriteSrc] = useState<string>(runboyImg);
+
+  useEffect(() => {
+    removeWhiteBackground(runboyImg).then((transparentUrl) => {
+      setSpriteSrc(transparentUrl);
+    });
+  }, []);
+
   const getThemeColor = () => {
     switch (variant) {
       case 'dp':
-        return { primary: '#a855f7', glow: 'rgba(168,85,247,0.5)', tag: 'DP' };
+        return {
+          primary: '#a855f7',
+          glow: 'rgba(168,85,247,0.7)',
+          tag: 'DP CREW',
+          filter: 'hue-rotate(240deg) saturate(1.4) drop-shadow(0 0 10px rgba(168,85,247,0.8))'
+        };
       case 'bnb':
-        return { primary: '#10b981', glow: 'rgba(16,185,129,0.5)', tag: 'B&B' };
+        return {
+          primary: '#10b981',
+          glow: 'rgba(16,185,129,0.7)',
+          tag: 'B&B CREW',
+          filter: 'hue-rotate(90deg) saturate(1.4) drop-shadow(0 0 10px rgba(16,185,129,0.8))'
+        };
       default:
-        return { primary: '#00f0ff', glow: 'rgba(0,240,255,0.5)', tag: 'YOU' };
+        return {
+          primary: '#00f0ff',
+          glow: 'rgba(0,240,255,0.8)',
+          tag: 'OPERATOR',
+          filter: 'drop-shadow(0 0 12px rgba(0,240,255,0.85))'
+        };
     }
   };
 
@@ -55,13 +80,13 @@ export const Character: React.FC<CharacterProps> = ({
           ? `transform ${transitionDuration}s cubic-bezier(0.2, 0.8, 0.4, 1)`
           : 'none',
         pointerEvents: 'none',
-        zIndex: 50,
+        zIndex: 60,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         transformOrigin: 'bottom center',
-        marginLeft: '-22px', // Center offset (44px width / 2)
-        marginTop: '-36px'   // Bottom-anchored offset
+        marginLeft: '-35px', // Center offset (70px width / 2)
+        marginTop: '-72px'   // Bottom-anchored offset
       }}
     >
       {/* Label Badge */}
@@ -69,15 +94,15 @@ export const Character: React.FC<CharacterProps> = ({
         <div
           className="font-mono"
           style={{
-            fontSize: '0.65rem',
+            fontSize: '0.7rem',
             fontWeight: 800,
-            padding: '2px 6px',
+            padding: '2px 8px',
             borderRadius: '4px',
-            background: 'rgba(5, 10, 20, 0.85)',
+            background: 'rgba(5, 10, 20, 0.92)',
             border: `1px solid ${theme.primary}`,
             color: theme.primary,
-            boxShadow: `0 0 8px ${theme.glow}`,
-            marginBottom: '3px',
+            boxShadow: `0 0 12px ${theme.glow}`,
+            marginBottom: '4px',
             whiteSpace: 'nowrap',
             letterSpacing: '0.05em'
           }}
@@ -93,25 +118,21 @@ export const Character: React.FC<CharacterProps> = ({
         <div
           style={{
             position: 'absolute',
-            top: '-10px',
+            top: '-16px',
             color: '#f59e0b',
             animation: 'radar-ping 0.8s ease-out infinite'
           }}
         >
-          <Zap size={18} fill="#f59e0b" />
+          <Zap size={24} fill="#f59e0b" />
         </div>
       )}
 
-      {/* Character Sprite Graphic */}
+      {/* Running Boy Character Sprite (Enlarged & Transparent) */}
       <div
         className={animationClass}
         style={{
-          width: '38px',
-          height: '38px',
-          borderRadius: '50%',
-          background: `radial-gradient(circle at 35% 35%, #ffffff 0%, ${theme.primary} 60%, #050a14 100%)`,
-          boxShadow: `0 0 16px ${theme.glow}, inset 0 0 6px rgba(0,0,0,0.8)`,
-          border: `2px solid ${theme.primary}`,
+          width: '70px',
+          height: '70px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -119,41 +140,48 @@ export const Character: React.FC<CharacterProps> = ({
           position: 'relative'
         }}
       >
-        {/* Visor / Cybernetic Face */}
-        <div
+        <img
+          src={spriteSrc}
+          alt="Running character"
           style={{
-            width: '18px',
-            height: '6px',
-            borderRadius: '3px',
-            background: '#ffffff',
-            boxShadow: `0 0 8px #ffffff`,
-            position: 'absolute',
-            top: '12px',
-            right: facing === 'right' ? '6px' : '14px'
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            filter: theme.filter,
+            imageRendering: 'auto'
           }}
         />
 
-        {/* State Icon Indicator */}
-        <div style={{ marginTop: '8px', color: '#050a14' }}>
-          {isLooting ? (
-            <Sparkles size={14} fill="#f59e0b" color="#f59e0b" />
-          ) : isRunning ? (
-            <Zap size={14} fill="#050a14" color="#050a14" />
-          ) : (
-            <Lock size={12} color="#050a14" />
-          )}
-        </div>
+        {/* Action Status Indicator Icon */}
+        {isLooting && (
+          <div
+            style={{
+              position: 'absolute',
+              right: '-6px',
+              bottom: '4px',
+              background: 'rgba(5, 10, 20, 0.95)',
+              borderRadius: '50%',
+              padding: '3px',
+              border: '1.5px solid #f59e0b',
+              boxShadow: '0 0 10px #f59e0b',
+              display: 'flex'
+            }}
+          >
+            <Sparkles size={14} color="#f59e0b" fill="#f59e0b" />
+          </div>
+        )}
       </div>
 
-      {/* Shadow Footprint */}
+      {/* Ground Shadow */}
       <div
         style={{
-          width: '28px',
-          height: '6px',
+          width: '42px',
+          height: '8px',
           borderRadius: '50%',
-          background: 'rgba(0, 0, 0, 0.5)',
+          background: 'rgba(0, 0, 0, 0.65)',
+          boxShadow: `0 0 10px ${theme.glow}`,
           filter: 'blur(2px)',
-          marginTop: '-2px'
+          marginTop: '-6px'
         }}
       />
     </div>

@@ -28,8 +28,8 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
   activeRoomId = null,
   onRoomClick,
   characters,
-  width = 660,
-  height = 360,
+  width = 740,
+  height = 440,
   disabledRoomIds = new Set(),
   hintRoomId = null,
   title = 'VAULT BLUEPRINT FLOOR PLAN',
@@ -58,10 +58,11 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
         maxWidth: `${width}px`,
         height: `${height}px`,
         overflow: 'hidden',
-        background: 'radial-gradient(ellipse at center, rgba(14, 23, 42, 0.9) 0%, rgba(5, 8, 15, 0.98) 100%)',
-        border: '1px solid rgba(0, 240, 255, 0.25)',
-        boxShadow: '0 0 30px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(0, 240, 255, 0.05)',
+        background: 'radial-gradient(ellipse at center, rgba(15, 25, 45, 0.95) 0%, rgba(5, 8, 15, 0.98) 100%)',
+        border: '1.5px solid rgba(0, 240, 255, 0.35)',
+        boxShadow: '0 0 35px rgba(0, 0, 0, 0.7), inset 0 0 50px rgba(0, 240, 255, 0.08)',
         margin: '0 auto',
+        borderRadius: '16px',
         userSelect: 'none'
       }}
     >
@@ -69,9 +70,9 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
       <div
         style={{
           position: 'absolute',
-          top: '10px',
-          left: '16px',
-          right: '16px',
+          top: '12px',
+          left: '18px',
+          right: '18px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -79,18 +80,18 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
           pointerEvents: 'none'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <span className="badge badge-player" style={{ fontSize: '0.65rem', padding: '2px 8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span className="badge badge-player" style={{ fontSize: '0.72rem', padding: '3px 10px', background: 'rgba(0,240,255,0.2)' }}>
             {title}
           </span>
           {queue.length > 0 && (
-            <span className="badge" style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b', fontSize: '0.65rem' }}>
+            <span className="badge" style={{ background: 'rgba(245,158,11,0.25)', color: '#f59e0b', border: '1px solid #f59e0b', fontSize: '0.7rem' }}>
               TARGETS QUEUED: {queue.length}
             </span>
           )}
         </div>
-        <div className="font-mono" style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-          SEC-GRID 2D MAP
+        <div className="font-mono" style={{ fontSize: '0.75rem', color: '#00f0ff', fontWeight: 600 }}>
+          SEC-GRID 2D HIGH-RES BLUEPRINT
         </div>
       </div>
 
@@ -102,12 +103,12 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 1 }}
       >
         <defs>
-          <pattern id="canvas-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-            <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
+          <pattern id="canvas-grid-large" width="30" height="30" patternUnits="userSpaceOnUse">
+            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="rgba(0, 240, 255, 0.04)" strokeWidth="1" />
           </pattern>
         </defs>
 
-        <rect width="100%" height="100%" fill="url(#canvas-grid)" />
+        <rect width="100%" height="100%" fill="url(#canvas-grid-large)" />
 
         {/* Security Conduits */}
         {conduits.map((c, i) => (
@@ -117,9 +118,9 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
               y1={c.y1}
               x2={c.x2}
               y2={c.y2}
-              stroke="rgba(0, 240, 255, 0.15)"
-              strokeWidth="3"
-              strokeDasharray="4 4"
+              stroke="rgba(0, 240, 255, 0.25)"
+              strokeWidth="4"
+              strokeDasharray="6 6"
             />
           </g>
         ))}
@@ -127,12 +128,12 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
         {/* Start Airlock Entry Line */}
         <line
           x1={30}
-          y1={50}
+          y1={60}
           x2={roomPositions[0]?.x || 80}
           y2={roomPositions[0]?.y || 80}
-          stroke="rgba(16, 185, 129, 0.3)"
-          strokeWidth="2"
-          strokeDasharray="2 2"
+          stroke="rgba(16, 185, 129, 0.4)"
+          strokeWidth="3"
+          strokeDasharray="4 4"
         />
       </svg>
 
@@ -141,7 +142,7 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
         style={{
           position: 'absolute',
           left: '30px',
-          top: '50px',
+          top: '60px',
           transform: 'translate(-50%, -50%)',
           zIndex: 5,
           pointerEvents: 'none',
@@ -150,24 +151,24 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
       >
         <div
           style={{
-            width: '26px',
-            height: '26px',
-            borderRadius: '6px',
-            background: 'rgba(16, 185, 129, 0.2)',
-            border: '1px solid #10b981',
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            background: 'rgba(16, 185, 129, 0.25)',
+            border: '2px solid #10b981',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: '#10b981',
-            fontSize: '0.65rem',
-            fontWeight: 800,
-            boxShadow: '0 0 10px rgba(16,185,129,0.3)'
+            fontSize: '0.72rem',
+            fontWeight: 900,
+            boxShadow: '0 0 14px rgba(16,185,129,0.5)'
           }}
         >
           IN
         </div>
-        <div className="font-mono" style={{ fontSize: '0.55rem', color: '#10b981', marginTop: '2px' }}>
-          ENTRY
+        <div className="font-mono" style={{ fontSize: '0.62rem', color: '#10b981', marginTop: '2px', fontWeight: 700 }}>
+          AIRLOCK
         </div>
       </div>
 
@@ -201,7 +202,7 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              opacity: isDisabled ? 0.4 : 1,
+              opacity: isDisabled ? 0.35 : 1,
               transition: 'transform 0.15s ease'
             }}
           >
@@ -210,62 +211,64 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
               <div
                 style={{
                   position: 'absolute',
-                  width: '60px',
-                  height: '60px',
+                  width: '74px',
+                  height: '74px',
                   borderRadius: '50%',
-                  border: '2px solid #00f0ff',
+                  border: '2.5px solid #00f0ff',
                   animation: 'radar-ping 1.2s ease-out infinite',
                   pointerEvents: 'none'
                 }}
               />
             )}
 
-            {/* Room Portal Node */}
+            {/* Room Portal Node (Enlarged) */}
             <div
               style={{
-                width: '46px',
-                height: '46px',
-                borderRadius: '12px',
+                width: '54px',
+                height: '54px',
+                borderRadius: '14px',
                 background: isLooted
-                  ? 'rgba(16, 185, 129, 0.15)'
+                  ? 'rgba(16, 185, 129, 0.2)'
                   : isActive
-                  ? 'rgba(0, 240, 255, 0.25)'
+                  ? 'rgba(0, 240, 255, 0.3)'
                   : isHint
-                  ? 'rgba(245, 158, 11, 0.25)'
+                  ? 'rgba(245, 158, 11, 0.3)'
                   : isQueued
-                  ? 'rgba(168, 85, 247, 0.2)'
-                  : 'rgba(18, 24, 38, 0.85)',
+                  ? 'rgba(168, 85, 247, 0.25)'
+                  : 'rgba(18, 26, 42, 0.92)',
                 border: isLooted
                   ? '2px solid #10b981'
                   : isActive
-                  ? '2px solid #00f0ff'
+                  ? '2.5px solid #00f0ff'
                   : isHint
-                  ? '2px solid #f59e0b'
+                  ? '2.5px solid #f59e0b'
                   : isQueued
                   ? '2px solid #c084fc'
-                  : '1px solid rgba(255, 255, 255, 0.15)',
+                  : '1.5px solid rgba(255, 255, 255, 0.18)',
                 boxShadow: isLooted
-                  ? '0 0 16px rgba(16, 185, 129, 0.4)'
+                  ? '0 0 20px rgba(16, 185, 129, 0.5)'
                   : isActive
-                  ? '0 0 20px rgba(0, 240, 255, 0.6)'
+                  ? '0 0 26px rgba(0, 240, 255, 0.75)'
                   : isHint
-                  ? '0 0 16px rgba(245, 158, 11, 0.5)'
+                  ? '0 0 22px rgba(245, 158, 11, 0.65)'
                   : isQueued
-                  ? '0 0 12px rgba(168, 85, 247, 0.4)'
+                  ? '0 0 16px rgba(168, 85, 247, 0.5)'
                   : 'none',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                position: 'relative'
+                position: 'relative',
+                transform: isActive ? 'scale(1.06)' : 'scale(1)',
+                transition: 'transform 0.2s ease'
               }}
             >
               {isLooted ? (
-                <CheckCircle2 size={20} color="#10b981" />
+                <CheckCircle2 size={24} color="#10b981" />
               ) : isActive ? (
-                <Sparkles size={20} color="#00f0ff" className="animate-pulse-glow" />
+                <Sparkles size={24} color="#00f0ff" className="animate-pulse-glow" />
               ) : (
-                <Lock size={18} color={isHint ? '#f59e0b' : '#94a3b8'} />
+                <Lock size={22} color={isHint ? '#f59e0b' : '#94a3b8'} />
               )}
 
               {/* Queue Position Chip */}
@@ -274,19 +277,20 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                   className="font-mono"
                   style={{
                     position: 'absolute',
-                    top: '-8px',
-                    right: '-8px',
+                    top: '-10px',
+                    right: '-10px',
                     background: '#a855f7',
                     color: '#ffffff',
-                    fontSize: '0.6rem',
+                    fontSize: '0.68rem',
                     fontWeight: 900,
                     borderRadius: '50%',
-                    width: '18px',
-                    height: '18px',
+                    width: '22px',
+                    height: '22px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 0 8px #a855f7'
+                    boxShadow: '0 0 10px #a855f7',
+                    border: '1.5px solid #ffffff'
                   }}
                 >
                   Q{queueIndex + 1}
@@ -295,11 +299,11 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
             </div>
 
             {/* Room Info Label */}
-            <div style={{ textAlign: 'center', marginTop: '4px', maxWidth: '85px' }}>
+            <div style={{ textAlign: 'center', marginTop: '6px', maxWidth: '100px' }}>
               <div
                 className="font-display"
                 style={{
-                  fontSize: '0.7rem',
+                  fontSize: '0.78rem',
                   fontWeight: 700,
                   color: isLooted ? '#34d399' : '#f8fafc',
                   overflow: 'hidden',
@@ -312,8 +316,9 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
               <div
                 className="font-mono"
                 style={{
-                  fontSize: '0.62rem',
-                  color: isLooted ? '#10b981' : 'var(--text-muted)'
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  color: isLooted ? '#10b981' : '#00f0ff'
                 }}
               >
                 ${room.value}k • {room.timeCost}s

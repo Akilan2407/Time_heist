@@ -31,14 +31,14 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
   const [viewMode, setViewMode] = useState<'blueprint' | 'tactical'>('blueprint');
   const [hintActive, setHintActive] = useState(false);
 
-  // Compute fixed 2D room positions
-  const roomPositions = useMemo(() => computeRoomPositions(rooms, 640, 340), [rooms]);
+  // Compute fixed 2D room positions for spacious canvas (740px width x 440px height)
+  const roomPositions = useMemo(() => computeRoomPositions(rooms, 740, 440), [rooms]);
   const posMap = useMemo(() => new Map(roomPositions.map((p) => [p.roomId, p])), [roomPositions]);
   const roomMap = useMemo(() => new Map(rooms.map((r) => [r.id, r])), [rooms]);
 
   // Character movement state machine
   const [charX, setCharX] = useState(30);
-  const [charY, setCharY] = useState(50);
+  const [charY, setCharY] = useState(60);
   const [charStatus, setCharStatus] = useState<CharacterStatus>('idle');
   const [charFacing, setCharFacing] = useState<'left' | 'right'>('right');
   const [currentTargetRoomId, setCurrentTargetRoomId] = useState<string | null>(null);
@@ -81,11 +81,11 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
       return;
     }
 
-    // Calculate distance and duration at constant ~160 px/sec
+    // Calculate distance and duration at constant ~180 px/sec
     const dx = targetPos.x - charX;
     const dy = targetPos.y - charY;
     const dist = Math.hypot(dx, dy);
-    const moveDuration = Math.max(0.4, dist / 160);
+    const moveDuration = Math.max(0.4, dist / 180);
 
     const facing = targetPos.x >= charX ? 'right' : 'left';
     setCharFacing(facing);
@@ -166,48 +166,48 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
   }, [rooms, timeRemaining, lootedRoomIds]);
 
   return (
-    <div className="glass-panel glass-panel-glow-player" style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="glass-panel glass-panel-glow-player" style={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: 'rgba(0,240,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00f0ff' }}>
-            <User size={18} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'rgba(0,240,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00f0ff' }}>
+            <User size={22} />
           </div>
           <div>
-            <h3 className="font-display" style={{ fontSize: '1.1rem', color: '#00f0ff', fontWeight: 700 }}>
+            <h3 className="font-display" style={{ fontSize: '1.25rem', color: '#00f0ff', fontWeight: 800 }}>
               YOU (OPERATOR)
             </h3>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              {charStatus === 'running' ? '⚡ Sprinting to target...' : charStatus === 'looting' ? '🔓 Hacking terminal...' : '🟢 Ready for orders'}
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              {charStatus === 'running' ? '⚡ Sprinting to target room...' : charStatus === 'looting' ? '🔓 Hacking vault terminal...' : '🟢 Ready for infiltration orders'}
             </div>
           </div>
         </div>
 
         {/* Live Score */}
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Secured Loot</div>
-          <div className="font-mono" style={{ fontSize: '1.3rem', fontWeight: 800, color: '#00f0ff' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Secured Loot</div>
+          <div className="font-mono" style={{ fontSize: '1.6rem', fontWeight: 900, color: '#00f0ff' }}>
             ${playerTotalValue}k
           </div>
         </div>
       </div>
 
       {/* Control & Power-Up Toolbar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.3)', padding: '6px 12px', borderRadius: '8px', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.35)', padding: '8px 14px', borderRadius: '10px', marginBottom: '14px' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             onClick={() => { soundFx.playClick(); setViewMode('blueprint'); }}
             className="btn-cyber btn-secondary"
-            style={{ padding: '4px 8px', fontSize: '0.7rem', background: viewMode === 'blueprint' ? '#00f0ff' : 'transparent', color: viewMode === 'blueprint' ? '#050a14' : '#f8fafc' }}
+            style={{ padding: '6px 12px', fontSize: '0.78rem', background: viewMode === 'blueprint' ? '#00f0ff' : 'transparent', color: viewMode === 'blueprint' ? '#050a14' : '#f8fafc' }}
           >
-            <Layers size={12} /> 2D Blueprint
+            <Layers size={14} /> 2D Blueprint Map
           </button>
           <button
             onClick={() => { soundFx.playClick(); setViewMode('tactical'); }}
             className="btn-cyber btn-secondary"
-            style={{ padding: '4px 8px', fontSize: '0.7rem', background: viewMode === 'tactical' ? '#00f0ff' : 'transparent', color: viewMode === 'tactical' ? '#050a14' : '#f8fafc' }}
+            style={{ padding: '6px 12px', fontSize: '0.78rem', background: viewMode === 'tactical' ? '#00f0ff' : 'transparent', color: viewMode === 'tactical' ? '#050a14' : '#f8fafc' }}
           >
-            <ListFilter size={12} /> Target Cards
+            <ListFilter size={14} /> Target Cards
           </button>
         </div>
 
@@ -215,16 +215,16 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
           onClick={() => { soundFx.playLootSuccess(); setHintActive(true); setTimeout(() => setHintActive(false), 4000); }}
           disabled={hintActive || isFinished || unlootedRooms.length === 0}
           className="btn-cyber btn-secondary"
-          style={{ fontSize: '0.75rem', padding: '4px 10px', color: '#f59e0b', borderColor: 'rgba(245,158,11,0.3)' }}
+          style={{ fontSize: '0.8rem', padding: '6px 14px', color: '#f59e0b', borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.1)' }}
           title="Highlight top value/time room"
         >
-          <Sparkles size={13} />
-          <span>{hintActive ? 'Greedy Scan!' : 'Greedy Hint'}</span>
+          <Sparkles size={14} />
+          <span>{hintActive ? 'Greedy Scan Active!' : 'Greedy Scan Hint'}</span>
         </button>
       </div>
 
-      {/* Main Interactive Arena: Blueprint or Tactical Cards */}
-      <div style={{ flex: 1, minHeight: '380px', display: 'flex', flexDirection: 'column' }}>
+      {/* Main Interactive Arena: Enlarged Blueprint Map */}
+      <div style={{ flex: 1, minHeight: '440px', display: 'flex', flexDirection: 'column' }}>
         {viewMode === 'blueprint' ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <VaultCanvas
@@ -247,16 +247,16 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                   transitionDuration
                 }
               ]}
-              width={640}
-              height={340}
+              width={740}
+              height={440}
               isInteractive={!isFinished}
             />
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '8px' }}>
-              💡 Click any room portal to queue movement. The character will run & loot in sequence!
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '10px' }}>
+              💡 Click any vault portal on the floor plan to queue movement. The boy will sprint & hack each terminal!
             </div>
           </div>
         ) : (
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '420px', paddingRight: '4px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '450px', paddingRight: '4px' }}>
             {rooms.map((room) => {
               const isLooted = lootedRoomIds.has(room.id);
               const isCurrent = currentTargetRoomId === room.id;
@@ -284,8 +284,8 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                       : isQueued
                       ? '1px solid #c084fc'
                       : '1px solid var(--border-subtle)',
-                    borderRadius: '8px',
-                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    padding: '12px 16px',
                     cursor: !isDisabled ? 'pointer' : 'default',
                     opacity: isDisabled && !isLooted ? 0.4 : 1,
                     display: 'flex',
@@ -294,26 +294,27 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                   }}
                 >
                   <div>
-                    <div className="font-display" style={{ fontWeight: 700, fontSize: '0.85rem', color: isLooted ? '#34d399' : '#f8fafc' }}>
+                    <div className="font-display" style={{ fontWeight: 700, fontSize: '0.95rem', color: isLooted ? '#34d399' : '#f8fafc' }}>
                       {room.name}
                     </div>
-                    <div style={{ display: 'flex', gap: '10px', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    <div style={{ display: 'flex', gap: '14px', fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                       <span>Cost: <strong style={{ color: '#00f0ff' }}>{room.timeCost}s</strong></span>
                       <span>Value: <strong style={{ color: '#f59e0b' }}>${room.value}k</strong></span>
+                      <span>Efficiency: <strong style={{ color: '#10b981' }}>{(room.value / room.timeCost).toFixed(1)}k/s</strong></span>
                     </div>
                   </div>
 
                   <div>
                     {isLooted ? (
-                      <span className="badge badge-bnb"><CheckCircle2 size={12} /> SECURED</span>
+                      <span className="badge badge-bnb" style={{ fontSize: '0.75rem' }}><CheckCircle2 size={13} /> SECURED</span>
                     ) : isCurrent ? (
-                      <span className="badge badge-player animate-pulse-glow">
-                        {charStatus === 'running' ? 'RUNNING' : `HACKING (${Math.round(lootingProgress * 100)}%)`}
+                      <span className="badge badge-player animate-pulse-glow" style={{ fontSize: '0.75rem' }}>
+                        {charStatus === 'running' ? 'SPRINTING' : `HACKING (${Math.round(lootingProgress * 100)}%)`}
                       </span>
                     ) : isQueued ? (
-                      <span className="badge badge-dp">QUEUED #{queueIdx + 1}</span>
+                      <span className="badge badge-dp" style={{ fontSize: '0.75rem' }}>QUEUED #{queueIdx + 1}</span>
                     ) : (
-                      <button className="btn-cyber btn-primary" style={{ padding: '3px 8px', fontSize: '0.7rem' }}>
+                      <button className="btn-cyber btn-primary" style={{ padding: '5px 12px', fontSize: '0.75rem' }}>
                         QUEUE
                       </button>
                     )}
