@@ -1,33 +1,51 @@
+/* ─── Fonts loaded via <link> in index.html ─── */
+/* Bebas Neue (hero), Rajdhani (display), DM Sans (body), JetBrains Mono (mono) */
+
 :root {
-  --font-display: 'Chakra Petch', sans-serif;
-  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* ── Money Heist Font Stack ── */
+  --font-hero:    'Bebas Neue', 'Impact', sans-serif;               /* Cinematic titles */
+  --font-display: 'Rajdhani', 'Arial Narrow', sans-serif;          /* Tactical UI labels */
+  --font-body:    'DM Sans', system-ui, -apple-system, sans-serif; /* Clean body */
+  --font-mono:    'JetBrains Mono', 'Cascadia Code', monospace;    /* Numbers & data */
 
-  /* Color Palette */
-  --bg-dark: #07090e;
-  --bg-surface: #0e121d;
-  --bg-card: rgba(18, 24, 38, 0.75);
-  --bg-card-hover: rgba(26, 35, 56, 0.85);
-  --bg-glass: rgba(15, 20, 32, 0.65);
+  /* ── Money Heist Color Palette ── */
+  --heist-red:      #e63946;
+  --heist-red-deep: #c1121f;
+  --heist-red-dark: #7b0d12;
+  --heist-red-glow: rgba(230, 57, 70, 0.35);
+  --heist-gold:     #ffd700;
+  --heist-gold-deep:#c9a227;
+  --heist-gold-glow:rgba(255, 215, 0, 0.30);
+  --heist-silver:   #a8b2bd;
+  --heist-silver-glow: rgba(168, 178, 189, 0.25);
 
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(0, 240, 255, 0.3);
-  --border-active: rgba(0, 240, 255, 0.6);
+  /* Backgrounds */
+  --bg-dark:      #0a0203;
+  --bg-surface:   #120406;
+  --bg-card:      rgba(20, 4, 6, 0.82);
+  --bg-card-hover:rgba(35, 6, 8, 0.90);
+  --bg-glass:     rgba(15, 3, 5, 0.72);
 
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  /* Borders */
+  --border-subtle: rgba(230, 57, 70, 0.12);
+  --border-glow:   rgba(230, 57, 70, 0.40);
+  --border-active: rgba(255, 215, 0, 0.60);
 
-  /* Entity Theme Colors */
-  --color-player: #00f0ff;
-  --color-player-glow: rgba(0, 240, 255, 0.25);
-  --color-dp: #a855f7;
-  --color-dp-glow: rgba(168, 85, 247, 0.25);
-  --color-bnb: #10b981;
-  --color-bnb-glow: rgba(16, 185, 129, 0.25);
-  --color-gold: #f59e0b;
-  --color-crimson: #ef4444;
-  --color-crimson-glow: rgba(239, 68, 68, 0.25);
+  /* Text */
+  --text-primary:   #f5e6e8;
+  --text-secondary: #c4a4a8;
+  --text-muted:     #7a5458;
+
+  /* Entity Colors — Money Heist Crew */
+  --color-player:       #e63946;
+  --color-player-glow:  rgba(230, 57, 70, 0.28);
+  --color-dp:           #c9a227;
+  --color-dp-glow:      rgba(201, 162, 39, 0.28);
+  --color-bnb:          #a8b2bd;
+  --color-bnb-glow:     rgba(168, 178, 189, 0.22);
+  --color-gold:         #ffd700;
+  --color-crimson:      #e63946;
+  --color-crimson-glow: rgba(230, 57, 70, 0.30);
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -35,80 +53,90 @@
   --radius-xl: 24px;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* ─── Reset ─── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* ─── Body ─── */
 body {
   background-color: var(--bg-dark);
   color: var(--text-primary);
   font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
   min-height: 100vh;
   overflow-x: hidden;
-  background-image: 
-    radial-gradient(circle at 15% 15%, rgba(0, 240, 255, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 85% 25%, rgba(168, 85, 247, 0.06) 0%, transparent 45%),
-    radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 50%),
-    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+  background-image:
+    radial-gradient(ellipse at 5% 5%,   rgba(193, 18, 31, 0.18) 0%, transparent 45%),
+    radial-gradient(ellipse at 95% 10%, rgba(230, 57, 70, 0.12) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 95%, rgba(123, 13, 18, 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 60%, rgba(201, 162, 39, 0.05) 0%, transparent 35%),
+    linear-gradient(rgba(230, 57, 70, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(230, 57, 70, 0.025) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Dali Mask floating watermarks */
+body::before {
+  content: '🎭';
+  position: fixed; top: 8%; right: 4%;
+  font-size: 7rem; opacity: 0.03;
+  pointer-events: none;
+  animation: mask-float 8s ease-in-out infinite;
+  z-index: 0;
 }
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-/* Typography Utilities */
-.font-display {
-  font-family: var(--font-display);
-}
-.font-mono {
-  font-family: var(--font-mono);
+body::after {
+  content: '🎭';
+  position: fixed; bottom: 10%; left: 3%;
+  font-size: 5rem; opacity: 0.025;
+  pointer-events: none;
+  animation: mask-float 11s ease-in-out infinite reverse;
+  z-index: 0;
 }
 
-/* Glassmorphism Cards */
+/* ─── Custom Scrollbars ─── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(10, 2, 3, 0.8); }
+::-webkit-scrollbar-thumb { background: rgba(193, 18, 31, 0.45); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(230, 57, 70, 0.7); }
+
+/* ─── Typography Utilities ─── */
+.font-hero    { font-family: var(--font-hero);    letter-spacing: 0.06em; }
+.font-display { font-family: var(--font-display); letter-spacing: 0.04em; }
+.font-mono    { font-family: var(--font-mono); }
+
+/* ─── Layout Container ─── */
+.layout-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px 28px;
+}
+
+/* ─── Glassmorphism Panels ─── */
 .glass-panel {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(230,57,70,0.06);
 }
-
 .glass-panel-glow-player {
-  border-color: rgba(0, 240, 255, 0.3);
-  box-shadow: 0 0 24px var(--color-player-glow), 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-color: rgba(230, 57, 70, 0.45);
+  box-shadow: 0 0 30px var(--color-player-glow), 0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(230,57,70,0.10);
 }
-
 .glass-panel-glow-dp {
-  border-color: rgba(168, 85, 247, 0.3);
-  box-shadow: 0 0 24px var(--color-dp-glow), 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-color: rgba(201, 162, 39, 0.40);
+  box-shadow: 0 0 28px var(--color-dp-glow), 0 8px 40px rgba(0,0,0,0.6);
 }
-
 .glass-panel-glow-bnb {
-  border-color: rgba(16, 185, 129, 0.3);
-  box-shadow: 0 0 24px var(--color-bnb-glow), 0 8px 32px rgba(0, 0, 0, 0.4);
+  border-color: rgba(168, 178, 189, 0.30);
+  box-shadow: 0 0 24px var(--color-bnb-glow), 0 8px 40px rgba(0,0,0,0.6);
 }
 
-/* Button & Interactive styles */
+/* ─── Buttons ─── */
 .btn-cyber {
   font-family: var(--font-display);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 700;
   display: inline-flex;
@@ -124,246 +152,237 @@ body {
   overflow: hidden;
   user-select: none;
 }
-
-.btn-cyber:active {
-  transform: scale(0.97);
+.btn-cyber::before {
+  content: '';
+  position: absolute; top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+  transition: left 0.4s ease;
 }
+.btn-cyber:hover::before { left: 100%; }
+.btn-cyber:active { transform: scale(0.97); }
 
 .btn-primary {
-  background: linear-gradient(135deg, #00f0ff 0%, #0099ff 100%);
-  color: #050a14;
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+  background: linear-gradient(135deg, #e63946 0%, #c1121f 100%);
+  color: #fff5f5;
+  box-shadow: 0 0 22px rgba(230,57,70,0.5), 0 4px 12px rgba(0,0,0,0.4);
 }
 .btn-primary:hover {
-  box-shadow: 0 0 30px rgba(0, 240, 255, 0.7);
+  box-shadow: 0 0 38px rgba(230,57,70,0.85), 0 0 80px rgba(230,57,70,0.3);
   transform: translateY(-2px);
 }
-
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(230, 57, 70, 0.06);
   color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(230, 57, 70, 0.20);
 }
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(230, 57, 70, 0.14);
+  border-color: rgba(230, 57, 70, 0.40);
 }
-
 .btn-danger {
-  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, #7b0d12 0%, #c1121f 100%);
   color: #ffffff;
-  box-shadow: 0 0 16px var(--color-crimson-glow);
+  box-shadow: 0 0 18px rgba(193,18,31,0.6);
 }
-.btn-danger:hover {
-  box-shadow: 0 0 24px rgba(239, 68, 68, 0.6);
-}
-
+.btn-danger:hover { box-shadow: 0 0 30px rgba(230,57,70,0.8); }
 .btn-accent-gold {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #0f172a;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, #ffd700 0%, #c9a227 100%);
+  color: #0f0304;
+  box-shadow: 0 0 22px rgba(255,215,0,0.45);
+  font-weight: 800;
 }
-
+.btn-accent-gold:hover {
+  box-shadow: 0 0 38px rgba(255,215,0,0.75);
+  transform: translateY(-2px);
+}
 .btn-accent-cyan {
-  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-  color: #050a14;
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+  background: linear-gradient(135deg, #c9a227 0%, #a37d18 100%);
+  color: #0f0304;
+  box-shadow: 0 0 20px rgba(201,162,39,0.4);
 }
 
-/* Badges */
+/* ─── Badges ─── */
 .badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px;
   border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: var(--font-display);
+}
+.badge-player { background: rgba(230,57,70,0.18);   color: #f87171;  border: 1px solid rgba(230,57,70,0.45); }
+.badge-dp     { background: rgba(201,162,39,0.18);  color: #ffd700;  border: 1px solid rgba(201,162,39,0.40); }
+.badge-bnb    { background: rgba(168,178,189,0.15); color: #d1d9e0;  border: 1px solid rgba(168,178,189,0.35); }
+.badge-pruned { background: rgba(193,18,31,0.20);   color: #ff6b6b;  border: 1px solid rgba(193,18,31,0.45); }
+.badge-guard  {
+  background: rgba(230,57,70,0.22); color: #ff4757;
+  border: 1px solid rgba(230,57,70,0.50);
+  animation: badge-guard-pulse 1.5s infinite ease-in-out;
+}
+.badge-fog { background: rgba(120,80,84,0.20); color: #a07478; border: 1px solid rgba(120,80,84,0.35); }
+
+/* ─── Money Heist Decorative Elements ─── */
+.heist-stripe {
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%, #c1121f 15%, #e63946 35%, #ffd700 50%, #e63946 65%, #c1121f 85%, transparent 100%);
+}
+
+.heist-hero-title {
+  font-family: var(--font-hero);
+  font-weight: 400; /* Bebas Neue is already ultra-bold at 400 */
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #ffd700 0%, #e63946 40%, #ffd700 80%, #fff5f5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-heist-red    { color: #e63946; text-shadow: 0 0 12px rgba(230,57,70,0.7); }
+.text-heist-gold   { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,0.6); }
+.text-heist-silver { color: #d1d9e0; text-shadow: 0 0 8px rgba(209,217,224,0.4); }
+
+.dali-mask-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, rgba(193,18,31,0.25), rgba(123,13,18,0.3));
+  border: 1px solid rgba(230,57,70,0.5);
+  border-radius: 9999px;
+  padding: 4px 14px;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #f87171;
   text-transform: uppercase;
 }
-.badge-player {
-  background: rgba(0, 240, 255, 0.15);
-  color: #00f0ff;
-  border: 1px solid rgba(0, 240, 255, 0.3);
+
+.heist-card {
+  background: linear-gradient(135deg, rgba(20,4,6,0.95) 0%, rgba(35,8,10,0.9) 100%);
+  border: 1px solid rgba(230,57,70,0.25);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 0 0 1px rgba(230,57,70,0.08), 0 8px 32px rgba(0,0,0,0.55);
+  position: relative; overflow: hidden;
 }
-.badge-dp {
-  background: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.3);
-}
-.badge-bnb {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-.badge-pruned {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-.badge-guard {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.4);
-}
-.badge-fog {
-  background: rgba(148, 163, 184, 0.15);
-  color: #94a3b8;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+.heist-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #e63946, #ffd700, #e63946, transparent);
 }
 
-/* Character, Guard & Fog Animations */
+/* ─── Character & Guard Animations ─── */
 @keyframes run-bob {
-  0%, 100% {
-    transform: translateY(0) rotate(-3deg);
-  }
-  50% {
-    transform: translateY(-6px) rotate(3deg);
-  }
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50%       { transform: translateY(-6px) rotate(3deg); }
 }
-
 @keyframes loot-hack {
-  0%, 100% {
-    transform: scale(1) translateY(0);
-    filter: drop-shadow(0 0 8px currentColor);
-  }
-  25% {
-    transform: scale(1.08) translateY(-2px);
-    filter: drop-shadow(0 0 16px currentColor);
-  }
-  75% {
-    transform: scale(0.96) translateY(1px);
-    filter: drop-shadow(0 0 12px currentColor);
-  }
+  0%, 100% { transform: scale(1) translateY(0);       filter: drop-shadow(0 0 8px #e63946); }
+  25%       { transform: scale(1.08) translateY(-2px); filter: drop-shadow(0 0 20px #ffd700); }
+  75%       { transform: scale(0.96) translateY(1px);  filter: drop-shadow(0 0 14px #e63946); }
 }
-
 @keyframes idle-breathe {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-2px); }
 }
-
 @keyframes radar-ping {
-  0% {
-    transform: scale(0.8);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(2.2);
-    opacity: 0;
-  }
+  0%   { transform: scale(0.8); opacity: 0.9; }
+  100% { transform: scale(2.4); opacity: 0; }
 }
-
 @keyframes guard-search-rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
-
 @keyframes security-breach-shake {
   0%, 100% { transform: translate(0, 0); }
-  20% { transform: translate(-6px, 4px); }
-  40% { transform: translate(6px, -4px); }
-  60% { transform: translate(-4px, -2px); }
-  80% { transform: translate(4px, 2px); }
+  20%       { transform: translate(-7px, 5px); }
+  40%       { transform: translate(7px, -5px); }
+  60%       { transform: translate(-5px, -3px); }
+  80%       { transform: translate(5px, 3px); }
 }
-
 @keyframes scout-reticle-spin {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.15); }
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.15); }
   100% { transform: rotate(360deg) scale(1); }
 }
 
-.scout-reticle-anim {
-  animation: scout-reticle-spin 4s linear infinite;
+/* ─── UI Animations ─── */
+@keyframes mask-float {
+  0%, 100% { transform: translateY(0) rotate(-3deg);  opacity: 0.030; }
+  50%       { transform: translateY(-18px) rotate(3deg); opacity: 0.055; }
 }
-
-.breach-alert-shake {
-  animation: security-breach-shake 0.4s ease-in-out infinite;
-}
-
-.character-sprite-running {
-  animation: run-bob 0.28s ease-in-out infinite;
-}
-
-.character-sprite-looting {
-  animation: loot-hack 0.4s ease-in-out infinite;
-}
-
-.character-sprite-idle {
-  animation: idle-breathe 2.5s ease-in-out infinite;
-}
-
-/* General Animations */
 @keyframes pulseGlow {
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.03);
-  }
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.04); }
 }
-.animate-pulse-glow {
-  animation: pulseGlow 2s infinite ease-in-out;
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+@keyframes heist-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    text-shadow: 0 0 14px #e63946, 0 0 30px rgba(230,57,70,0.5);
+    opacity: 1;
+  }
+  20%, 24%, 55% { text-shadow: none; opacity: 0.85; }
+}
+@keyframes badge-guard-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(230,57,70,0.5); }
+  50%       { box-shadow: 0 0 0 5px rgba(230,57,70,0); }
+}
+@keyframes vault-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes slide-in-down {
+  from { transform: translateY(-24px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes bella-ciao-pulse {
+  0%, 100% { transform: scale(1);    color: #e63946; }
+  50%       { transform: scale(1.15); color: #ffd700; }
 }
 
-@keyframes scanline {
-  0% {
-    transform: translateY(-100%);
-  }
-  100% {
-    transform: translateY(1000%);
-  }
-}
+/* ─── Animation Classes ─── */
+.scout-reticle-anim       { animation: scout-reticle-spin 4s linear infinite; }
+.breach-alert-shake       { animation: security-breach-shake 0.4s ease-in-out infinite; }
+.character-sprite-running { animation: run-bob 0.28s ease-in-out infinite; }
+.character-sprite-looting { animation: loot-hack 0.4s ease-in-out infinite; }
+.character-sprite-idle    { animation: idle-breathe 2.5s ease-in-out infinite; }
+.animate-pulse-glow       { animation: pulseGlow 2s infinite ease-in-out; }
+.animate-heist-flicker    { animation: heist-flicker 3s linear infinite; }
+.animate-slide-in         { animation: slide-in-down 0.4s ease-out forwards; }
+
 .scanline-effect {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.4), transparent);
-  animation: scanline 6s linear infinite;
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(230,57,70,0.5), transparent);
+  animation: scanline 5s linear infinite;
   pointer-events: none;
 }
 
-/* Range input styling for replay scrubber */
-input[type=range] {
-  -webkit-appearance: none;
-  width: 100%;
-  background: transparent;
-}
-input[type=range]:focus {
-  outline: none;
-}
+/* ─── Range Input ─── */
+input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+input[type=range]:focus { outline: none; }
 input[type=range]::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 8px;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%; height: 6px; cursor: pointer;
+  background: linear-gradient(90deg, rgba(193,18,31,0.3), rgba(230,57,70,0.15));
+  border-radius: 3px;
+  border: 1px solid rgba(230,57,70,0.2);
 }
 input[type=range]::-webkit-slider-thumb {
-  height: 20px;
-  width: 20px;
-  border-radius: 50%;
-  background: #00f0ff;
-  cursor: pointer;
-  -webkit-appearance: none;
-  margin-top: -6px;
-  box-shadow: 0 0 12px #00f0ff, 0 0 4px #ffffff;
-  border: 2px solid #ffffff;
+  height: 20px; width: 20px; border-radius: 50%;
+  background: radial-gradient(circle, #ff6b6b 0%, #c1121f 100%);
+  cursor: pointer; -webkit-appearance: none; margin-top: -7px;
+  box-shadow: 0 0 14px rgba(230,57,70,0.8), 0 0 4px #ffffff;
+  border: 2px solid rgba(255,255,255,0.6);
   transition: transform 0.1s;
 }
-input[type=range]::-webkit-slider-thumb:hover {
-  transform: scale(1.25);
-}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+
+/* ─── Number inputs ─── */
+input[type=number] { -moz-appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
