@@ -32,7 +32,8 @@ export function App() {
   const loadNewHeist = async (options: {
     roomCount?: number;
     timeBudget?: number;
-    difficulty?: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible';
+    vaultPotential?: number;
+    difficulty?: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible' | 'Custom';
   } = {}) => {
     setIsLoading(true);
     try {

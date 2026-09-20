@@ -8,7 +8,8 @@ const API_BASE = '/api/heist';
 export async function apiGenerateHeist(options: {
   roomCount?: number;
   timeBudget?: number;
-  difficulty?: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible';
+  vaultPotential?: number;
+  difficulty?: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible' | 'Custom';
 }): Promise<Heist> {
   try {
     const res = await fetch(`${API_BASE}/generate`, {

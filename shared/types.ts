@@ -57,7 +57,7 @@ export interface MovementLogEntry {
 export interface Heist {
   id: string;
   name: string;
-  difficulty: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible';
+  difficulty: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible' | 'Custom';
   rooms: Room[];
   guards: Guard[];
   timeBudget: number;   // total seconds available

@@ -180,7 +180,41 @@ for (let i = 1; i <= 30; i++) {
   }
 }
 
+// 7. Custom Heist Parameter Validation (User-defined rooms, vault potential, and budget)
+console.log('Test 7: Custom Heist Parameter Control (Rooms, Vault Potential, and Time Budget)');
+{
+  const customRooms = 11;
+  const customPotential = 1450;
+  const customBudget = 68;
+
+  const heist = generateHeist({
+    roomCount: customRooms,
+    vaultPotential: customPotential,
+    timeBudget: customBudget,
+    difficulty: 'Custom'
+  });
+
+  assert(heist.rooms.length === customRooms, `Custom roomCount should be ${customRooms}, got ${heist.rooms.length}`);
+  assert(heist.timeBudget === customBudget, `Custom timeBudget should be ${customBudget}, got ${heist.timeBudget}`);
+
+  const totalVaultValue = heist.rooms.reduce((s, r) => s + r.value, 0);
+  assert(
+    totalVaultValue === customPotential,
+    `Custom vaultPotential sum should exactly equal ${customPotential}, got ${totalVaultValue}`
+  );
+
+  const dp = solveDP(heist.rooms, heist.timeBudget);
+  const bnb = solveBranchAndBound(heist.rooms, heist.timeBudget);
+  const greedy = solveGreedyKnapsack(heist.rooms, heist.timeBudget);
+
+  assert(dp.optimalValue === bnb.optimalValue, 'Custom Heist DP and BnB must match');
+  assert(greedy.totalValue <= dp.optimalValue, 'Custom Heist Greedy <= DP optimal');
+  validateSubset(heist.rooms, dp.selectedRoomIds, heist.timeBudget, dp.optimalValue, 'Custom Heist DP');
+  validateSubset(heist.rooms, bnb.selectedRoomIds, heist.timeBudget, bnb.optimalValue, 'Custom Heist BnB');
+}
+
 console.log('\n====================================================');
 console.log(`✅ ALL ${totalTests} TESTS PASSED WITH 100% PARITY & VALIDATION!`);
 console.log('====================================================');
+
 

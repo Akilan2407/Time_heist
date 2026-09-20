@@ -28,8 +28,8 @@ setInterval(cleanExpiredHeists, 10 * 60 * 1000);
  */
 heistRouter.post('/generate', (req: Request, res: Response) => {
   try {
-    const { roomCount, timeBudget, difficulty } = req.body || {};
-    const heist = generateHeist({ roomCount, timeBudget, difficulty });
+    const { roomCount, timeBudget, vaultPotential, difficulty } = req.body || {};
+    const heist = generateHeist({ roomCount, timeBudget, vaultPotential, difficulty });
 
     // Store for 1 hour
     heistStore.set(heist.id, {

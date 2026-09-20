@@ -143,7 +143,8 @@ const ROOM_TEMPLATES: RoomTemplate[] = [
 export interface GenerateHeistOptions {
   roomCount?: number;
   timeBudget?: number;
-  difficulty?: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible';
+  vaultPotential?: number; // Target total vault value in $k
+  difficulty?: 'Rookie' | 'Standard' | 'Mastermind' | 'Impossible' | 'Custom';
   seed?: number;
 }
 
@@ -169,6 +170,10 @@ export function generateHeist(options: GenerateHeistOptions = {}): Heist {
       case 'Impossible':
         roomCount = roomCount || 16;
         timeBudget = timeBudget || 80;
+        break;
+      case 'Custom':
+        roomCount = roomCount || 8;
+        timeBudget = timeBudget || 45;
         break;
     }
   }
@@ -207,6 +212,28 @@ export function generateHeist(options: GenerateHeistOptions = {}): Heist {
       guarded: false
     };
   });
+
+  // If a specific Vault Potential is requested, scale room values to match the target sum
+  if (options.vaultPotential && options.vaultPotential > 0 && rooms.length > 0) {
+    const targetVal = Math.round(options.vaultPotential);
+    const rawSum = rooms.reduce((sum, r) => sum + r.value, 0);
+    if (rawSum > 0) {
+      const scale = targetVal / rawSum;
+      rooms.forEach((r) => {
+        r.value = Math.max(5, Math.round(r.value * scale));
+      });
+
+      // Balance rounding differences to guarantee exact total potential match
+      const currentSum = rooms.reduce((sum, r) => sum + r.value, 0);
+      const diff = targetVal - currentSum;
+      if (diff !== 0) {
+        // Adjust the highest value room
+        const sortedIndices = rooms.map((r, i) => ({ val: r.value, i })).sort((a, b) => b.val - a.val);
+        const topIdx = sortedIndices[0].i;
+        rooms[topIdx].value = Math.max(5, rooms[topIdx].value + diff);
+      }
+    }
+  }
 
   // Generate 1-2 Guard Patrol Routes
   const guardCount = difficulty === 'Mastermind' || difficulty === 'Impossible' ? 2 : 1;
