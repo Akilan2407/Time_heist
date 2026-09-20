@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Heist, HeistResult, PlayerAction, Room } from '../../../shared/types.js';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Heist, HeistResult, PlayerAction, MovementLogEntry, Room } from '../../../shared/types.js';
 import { TimerHeader } from './live/TimerHeader.js';
 import { PlayerPanel } from './live/PlayerPanel.js';
 import { DPCrewPanel } from './live/DPCrewPanel.js';
@@ -9,7 +9,7 @@ import { soundFx } from '../utils/audio.js';
 interface LiveHeistViewProps {
   heist: Heist;
   heistResult: HeistResult;
-  onFinishHeist: (actions: PlayerAction[]) => void;
+  onFinishHeist: (actions: PlayerAction[], movementLog: MovementLogEntry[]) => void;
 }
 
 export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
@@ -23,8 +23,8 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
   // Player state
   const [lootedRoomIds, setLootedRoomIds] = useState<Set<string>>(new Set());
   const [playerTotalValue, setPlayerTotalValue] = useState(0);
-  const [activeLootingRoom, setActiveLootingRoom] = useState<{ room: Room; startElapsed: number } | null>(null);
   const [playerActions, setPlayerActions] = useState<PlayerAction[]>([]);
+  const [playerMovementLog, setPlayerMovementLog] = useState<MovementLogEntry[]>([]);
 
   const roomMap = useMemo(() => new Map(heist.rooms.map((r) => [r.id, r])), [heist.rooms]);
 
@@ -36,31 +36,13 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
       setTimeElapsed((prev) => {
         const next = Math.min(heist.timeBudget, prev + 0.1);
 
-        // Check if player is currently looting a room
-        if (activeLootingRoom) {
-          const lootDuration = activeLootingRoom.room.timeCost;
-          const timeSpentOnLoot = next - activeLootingRoom.startElapsed;
-
-          if (timeSpentOnLoot >= lootDuration) {
-            // Room lockpick completed!
-            soundFx.playLootSuccess();
-            setLootedRoomIds((old) => new Set(old).add(activeLootingRoom.room.id));
-            setPlayerTotalValue((val) => val + activeLootingRoom.room.value);
-            setPlayerActions((acts) => [
-              ...acts,
-              { roomId: activeLootingRoom.room.id, timestamp: activeLootingRoom.startElapsed }
-            ]);
-            setActiveLootingRoom(null);
-          }
-        }
-
         // Check if time is up
         if (next >= heist.timeBudget) {
           clearInterval(interval);
           setIsFinished(true);
           soundFx.playHeistAlarm();
           setTimeout(() => {
-            onFinishHeist(playerActions);
+            onFinishHeist(playerActions, playerMovementLog);
           }, 1200);
         }
 
@@ -69,30 +51,25 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
     }, 100);
 
     return () => clearInterval(interval);
-  }, [isFinished, activeLootingRoom, heist.timeBudget, onFinishHeist, playerActions]);
+  }, [isFinished, heist.timeBudget, onFinishHeist, playerActions, playerMovementLog]);
 
-  const handleLootRoom = (room: Room) => {
-    if (activeLootingRoom || isFinished) return;
-    const remaining = heist.timeBudget - timeElapsed;
-    if (room.timeCost > remaining) return;
+  const handleRecordAction = useCallback((action: PlayerAction, movementEntries: MovementLogEntry[]) => {
+    setPlayerActions((prev) => [...prev, action]);
+    setPlayerMovementLog((prev) => [...prev, ...movementEntries]);
+  }, []);
 
-    setActiveLootingRoom({
-      room,
-      startElapsed: timeElapsed
-    });
-  };
+  const handleLootSuccess = useCallback((room: Room) => {
+    setLootedRoomIds((old) => new Set(old).add(room.id));
+    setPlayerTotalValue((val) => val + room.value);
+  }, []);
 
   const handleAbort = () => {
     soundFx.playClick();
     setIsFinished(true);
-    onFinishHeist(playerActions);
+    onFinishHeist(playerActions, playerMovementLog);
   };
 
   const timeRemaining = Math.max(0, heist.timeBudget - timeElapsed);
-
-  const activeProgress = activeLootingRoom
-    ? Math.min(1, Math.max(0, (timeElapsed - activeLootingRoom.startElapsed) / activeLootingRoom.room.timeCost))
-    : 0;
 
   return (
     <div className="layout-container">
@@ -112,18 +89,17 @@ export const LiveHeistView: React.FC<LiveHeistViewProps> = ({
         gap: '20px',
         alignItems: 'stretch'
       }}>
-        {/* Panel 1: Player Operator */}
+        {/* Panel 1: Player Operator with Running Character Canvas */}
         <PlayerPanel
           rooms={heist.rooms}
           timeBudget={heist.timeBudget}
           timeRemaining={timeRemaining}
           timeElapsed={timeElapsed}
-          lootedRoomIds={lootedRoomIds}
-          activeLootingRoomId={activeLootingRoom ? activeLootingRoom.room.id : null}
-          activeLootingProgress={activeProgress}
-          onLootRoom={handleLootRoom}
+          onRecordAction={handleRecordAction}
+          onLootSuccess={handleLootSuccess}
           playerTotalValue={playerTotalValue}
           isFinished={isFinished}
+          lootedRoomIds={lootedRoomIds}
         />
 
         {/* Panel 2: DP Crew (Precomputed) */}

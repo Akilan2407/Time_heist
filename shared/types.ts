@@ -8,6 +8,28 @@ export interface Room {
   securityLevel?: 'Low' | 'Medium' | 'High' | 'Extreme';
 }
 
+export interface RoomPosition {
+  roomId: string;
+  x: number;   // pixel or percentage coordinate (0 to 100 or px)
+  y: number;
+}
+
+export type CharacterStatus = 'idle' | 'running' | 'looting';
+
+export interface CharacterState {
+  x: number;
+  y: number;
+  status: CharacterStatus;
+  currentTargetRoomId: string | null;
+  queue: string[];        // roomIds queued up, in order
+}
+
+export interface MovementLogEntry {
+  timestamp: number;      // ms since heist start (or seconds depending on scale)
+  roomId: string;
+  eventType: 'arrived' | 'lootStart' | 'lootComplete';
+}
+
 export interface Heist {
   id: string;
   name: string;
@@ -59,6 +81,7 @@ export interface HeistResult {
   bnbPath: PathItem[];
   bnbTree: BnBStep[];
   playerPath: PlayerAction[];
+  playerMovementLog?: MovementLogEntry[];
   playerTotalValue: number;
   playerValidPath: boolean;
   bnbNodesExplored: number;

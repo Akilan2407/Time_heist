@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heist, HeistResult, PlayerAction } from '../shared/types.js';
+import { Heist, HeistResult, PlayerAction, MovementLogEntry } from '../shared/types.js';
 import { Navbar } from './components/Navbar.js';
 import { HeistSetup } from './components/HeistSetup.js';
 import { LiveHeistView } from './components/LiveHeistView.js';
@@ -12,6 +12,7 @@ export function App() {
   const [heist, setHeist] = useState<Heist | null>(null);
   const [heistResult, setHeistResult] = useState<HeistResult | null>(null);
   const [playerActions, setPlayerActions] = useState<PlayerAction[]>([]);
+  const [playerMovementLog, setPlayerMovementLog] = useState<MovementLogEntry[]>([]);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showExplainer, setShowExplainer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,11 +43,13 @@ export function App() {
   const handleStartHeist = () => {
     if (!heist || !heistResult) return;
     setPlayerActions([]);
+    setPlayerMovementLog([]);
     setCurrentScreen('live');
   };
 
-  const handleFinishHeist = async (actions: PlayerAction[]) => {
+  const handleFinishHeist = async (actions: PlayerAction[], movementLog: MovementLogEntry[]) => {
     setPlayerActions(actions);
+    setPlayerMovementLog(movementLog);
     if (heist) {
       try {
         await apiSubmitPlayerRun(heist.id, actions, heist);
@@ -102,6 +105,7 @@ export function App() {
             heist={heist}
             heistResult={heistResult}
             playerActions={playerActions}
+            playerMovementLog={playerMovementLog}
             onPlayAgain={handleResetToSetup}
           />
         ) : null}

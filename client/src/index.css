@@ -197,7 +197,64 @@ body {
   border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
-/* Animations */
+/* Character Animations */
+@keyframes run-bob {
+  0%, 100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(3deg);
+  }
+}
+
+@keyframes loot-hack {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  25% {
+    transform: scale(1.08) translateY(-2px);
+    filter: drop-shadow(0 0 16px currentColor);
+  }
+  75% {
+    transform: scale(0.96) translateY(1px);
+    filter: drop-shadow(0 0 12px currentColor);
+  }
+}
+
+@keyframes idle-breathe {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes radar-ping {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.character-sprite-running {
+  animation: run-bob 0.28s ease-in-out infinite;
+}
+
+.character-sprite-looting {
+  animation: loot-hack 0.4s ease-in-out infinite;
+}
+
+.character-sprite-idle {
+  animation: idle-breathe 2.5s ease-in-out infinite;
+}
+
+/* General Animations */
 @keyframes pulseGlow {
   0%, 100% {
     opacity: 0.6;

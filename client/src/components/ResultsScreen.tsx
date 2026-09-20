@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Heist, HeistResult, PlayerAction, Room } from '../../../shared/types.js';
+import { Heist, HeistResult, PlayerAction, MovementLogEntry, Room } from '../../../shared/types.js';
 import { ReplayScrubber } from './ReplayScrubber.js';
 import { 
   Trophy, 
@@ -22,6 +22,7 @@ interface ResultsScreenProps {
   heist: Heist;
   heistResult: HeistResult;
   playerActions: PlayerAction[];
+  playerMovementLog?: MovementLogEntry[];
   onPlayAgain: () => void;
 }
 
@@ -29,9 +30,9 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   heist,
   heistResult,
   playerActions,
+  playerMovementLog = [],
   onPlayAgain
 }) => {
-  const [activeTab, setActiveTab] = useState<'summary' | 'tree'>('summary');
   const roomMap = useMemo(() => new Map(heist.rooms.map((r) => [r.id, r])), [heist.rooms]);
 
   // Compute player final total
@@ -199,7 +200,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         </div>
       </div>
 
-      {/* CS Efficiency & Complexity Callout (Viva / Computer Science Highlights) */}
+      {/* CS Efficiency & Complexity Callout */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '24px' }}>
         
         {/* DP Metrics Card */}
@@ -258,11 +259,12 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
       </div>
 
-      {/* Synchronized Replay Scrubber */}
+      {/* Synchronized Replay Scrubber with 3-Character Arena */}
       <ReplayScrubber
         heist={heist}
         heistResult={heistResult}
         playerActions={playerActions}
+        playerMovementLog={playerMovementLog}
         roomMap={roomMap}
       />
 
