@@ -47,7 +47,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
   const posMap = useMemo(() => new Map(roomPositions.map((p) => [p.roomId, p])), [roomPositions]);
   const roomMap = useMemo(() => new Map(rooms.map((r) => [r.id, r])), [rooms]);
 
-  // Character movement state machine
+  // Character movement state
   const [charX, setCharX] = useState(30);
   const [charY, setCharY] = useState(60);
   const [charStatus, setCharStatus] = useState<CharacterStatus>('idle');
@@ -57,6 +57,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
   const [transitionDuration, setTransitionDuration] = useState(0.5);
   const [lootingProgress, setLootingProgress] = useState(0);
 
+  // References for reliable access in async callbacks
   const timeElapsedRef = useRef(timeElapsed);
   timeElapsedRef.current = timeElapsed;
 
@@ -69,6 +70,16 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
   const charPosRef = useRef({ x: charX, y: charY });
   charPosRef.current = { x: charX, y: charY };
 
+  const queueRef = useRef(queue);
+  queueRef.current = queue;
+
+  const isFinishedRef = useRef(isFinished);
+  isFinishedRef.current = isFinished;
+
+  const isStunnedRef = useRef(isStunned);
+  isStunnedRef.current = isStunned;
+
+  const arrivalTimerRef = useRef<any>(null);
   const activeLockpickIntervalRef = useRef<any>(null);
   const lastCaughtTimestampRef = useRef<number>(-10);
 
@@ -78,92 +89,32 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
     ? [...unlootedRooms].sort((a, b) => (b.value / b.timeCost) - (a.value / a.timeCost))[0]
     : null;
 
-  // Queue click handler
-  const handleQueueRoom = (room: Room) => {
-    if (isFinished || isStunned || lootedRoomIds.has(room.id) || queue.includes(room.id) || currentTargetRoomId === room.id) {
-      return;
-    }
-    soundFx.playLockpickTick();
-    setQueue((prev) => [...prev, room.id]);
-  };
-
-  // Real-Time Stealth Collision Detection with Sentry Guards
-  useEffect(() => {
-    if (isFinished || guards.length === 0) return;
-
-    // Check collision between player and guards
-    for (const guard of guards) {
-      const gPos = getGuardPositionAtTime(guard, roomPositions, timeElapsed);
-      const playerX = charPosRef.current.x;
-      const playerY = charPosRef.current.y;
-      const dist = Math.hypot(playerX - gPos.x, playerY - gPos.y);
-
-      // Trigger breach if close and player is looting or within room
-      const cooldownPassed = (timeElapsed - lastCaughtTimestampRef.current) > 4.0;
-      if (dist < GUARD_DETECTION_DISTANCE && cooldownPassed && (charStatusRef.current === 'looting' || charStatusRef.current === 'running')) {
-        lastCaughtTimestampRef.current = timeElapsed;
-
-        // Cancel active looting lockpick
-        if (activeLockpickIntervalRef.current) {
-          clearInterval(activeLockpickIntervalRef.current);
-          activeLockpickIntervalRef.current = null;
-        }
-
-        soundFx.playHeistAlarm();
-        setCharStatus('caught');
-        setIsStunned(true);
-        setLootingProgress(0);
-
-        setBreachAlert({
-          active: true,
-          message: `SPOTTED BY ${guard.name.toUpperCase()}! -$${CAUGHT_VALUE_PENALTY}k FINE & -${CAUGHT_TIME_PENALTY}s ALARM SURGE`,
-          guardName: guard.name
-        });
-
-        if (onPenaltyDeducted) {
-          onPenaltyDeducted(CAUGHT_VALUE_PENALTY, CAUGHT_TIME_PENALTY);
-        }
-
-        const caughtEntry: MovementLogEntry = {
-          timestamp: timeElapsed,
-          roomId: currentTargetRef.current || 'corridor',
-          eventType: 'caught'
-        };
-        onRecordAction({ roomId: currentTargetRef.current || 'corridor', timestamp: timeElapsed }, [caughtEntry]);
-
-        // Stun recovery after 2.5 seconds
-        setTimeout(() => {
-          setIsStunned(false);
-          setCharStatus('idle');
-          setCurrentTargetRoomId(null);
-          setBreachAlert(null);
-        }, 2500);
-
-        break;
-      }
-    }
-  }, [timeElapsed, guards, isFinished, roomPositions, onPenaltyDeducted, onRecordAction]);
-
-  // State machine loop: pops next room from queue when idle
-  useEffect(() => {
-    if (isFinished || isStunned || charStatus !== 'idle' || queue.length === 0) {
+  // Process next room in queue
+  const processNextInQueue = useCallback(() => {
+    if (isFinishedRef.current || isStunnedRef.current || charStatusRef.current !== 'idle') {
       return;
     }
 
-    const nextRoomId = queue[0];
+    const currentQueue = queueRef.current;
+    if (currentQueue.length === 0) return;
+
+    const nextRoomId = currentQueue[0];
     const targetPos = posMap.get(nextRoomId);
     const targetRoom = roomMap.get(nextRoomId);
+
     if (!targetPos || !targetRoom) {
       setQueue((q) => q.slice(1));
       return;
     }
 
-    const dx = targetPos.x - charX;
-    const dy = targetPos.y - charY;
+    const currentX = charPosRef.current.x;
+    const currentY = charPosRef.current.y;
+    const dx = targetPos.x - currentX;
+    const dy = targetPos.y - currentY;
     const dist = Math.hypot(dx, dy);
     const moveDuration = Math.max(0.4, dist / 180);
 
-    const facing = targetPos.x >= charX ? 'right' : 'left';
+    const facing = targetPos.x >= currentX ? 'right' : 'left';
     setCharFacing(facing);
     setTransitionDuration(moveDuration);
     setCharX(targetPos.x);
@@ -179,7 +130,10 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
       eventType: 'lootStart'
     };
 
-    const arrivalTimer = setTimeout(() => {
+    // Schedule arrival at target room
+    if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
+
+    arrivalTimerRef.current = setTimeout(() => {
       if (charStatusRef.current === 'caught') return;
 
       const arrivedTimestamp = timeElapsedRef.current;
@@ -195,6 +149,8 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
 
       const lootDurationMs = targetRoom.timeCost * 1000;
       const startTime = Date.now();
+
+      if (activeLockpickIntervalRef.current) clearInterval(activeLockpickIntervalRef.current);
 
       activeLockpickIntervalRef.current = setInterval(() => {
         const elapsedMs = Date.now() - startTime;
@@ -226,11 +182,89 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
       }, 50);
 
     }, moveDuration * 1000);
+  }, [posMap, roomMap, onRecordAction, onLootSuccess]);
 
+  // When character becomes idle or queue has items, process queue
+  useEffect(() => {
+    if (charStatus === 'idle' && queue.length > 0) {
+      processNextInQueue();
+    }
+  }, [charStatus, queue.length, processNextInQueue]);
+
+  // Queue click handler
+  const handleQueueRoom = (room: Room) => {
+    if (isFinished || isStunned || lootedRoomIds.has(room.id) || queue.includes(room.id) || currentTargetRoomId === room.id) {
+      return;
+    }
+    soundFx.playLockpickTick();
+    setQueue((prev) => [...prev, room.id]);
+  };
+
+  // Real-Time Stealth Collision Detection with Sentry Guards
+  useEffect(() => {
+    if (isFinished || guards.length === 0) return;
+
+    for (const guard of guards) {
+      const gPos = getGuardPositionAtTime(guard, roomPositions, timeElapsed);
+      const playerX = charPosRef.current.x;
+      const playerY = charPosRef.current.y;
+      const dist = Math.hypot(playerX - gPos.x, playerY - gPos.y);
+
+      const cooldownPassed = (timeElapsed - lastCaughtTimestampRef.current) > 4.0;
+      if (dist < GUARD_DETECTION_DISTANCE && cooldownPassed && (charStatusRef.current === 'looting' || charStatusRef.current === 'running')) {
+        lastCaughtTimestampRef.current = timeElapsed;
+
+        if (arrivalTimerRef.current) {
+          clearTimeout(arrivalTimerRef.current);
+          arrivalTimerRef.current = null;
+        }
+
+        if (activeLockpickIntervalRef.current) {
+          clearInterval(activeLockpickIntervalRef.current);
+          activeLockpickIntervalRef.current = null;
+        }
+
+        soundFx.playHeistAlarm();
+        setCharStatus('caught');
+        setIsStunned(true);
+        setLootingProgress(0);
+
+        setBreachAlert({
+          active: true,
+          message: `SPOTTED BY ${guard.name.toUpperCase()}! -$${CAUGHT_VALUE_PENALTY}k FINE & -${CAUGHT_TIME_PENALTY}s ALARM SURGE`,
+          guardName: guard.name
+        });
+
+        if (onPenaltyDeducted) {
+          onPenaltyDeducted(CAUGHT_VALUE_PENALTY, CAUGHT_TIME_PENALTY);
+        }
+
+        const caughtEntry: MovementLogEntry = {
+          timestamp: timeElapsed,
+          roomId: currentTargetRef.current || 'corridor',
+          eventType: 'caught'
+        };
+        onRecordAction({ roomId: currentTargetRef.current || 'corridor', timestamp: timeElapsed }, [caughtEntry]);
+
+        setTimeout(() => {
+          setIsStunned(false);
+          setCharStatus('idle');
+          setCurrentTargetRoomId(null);
+          setBreachAlert(null);
+        }, 2500);
+
+        break;
+      }
+    }
+  }, [timeElapsed, guards, isFinished, roomPositions, onPenaltyDeducted, onRecordAction]);
+
+  // Clean up all timers on unmount
+  useEffect(() => {
     return () => {
-      clearTimeout(arrivalTimer);
+      if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
+      if (activeLockpickIntervalRef.current) clearInterval(activeLockpickIntervalRef.current);
     };
-  }, [charStatus, queue, charX, charY, posMap, roomMap, isFinished, isStunned, onRecordAction, onLootSuccess]);
+  }, []);
 
   const disabledRoomIds = useMemo(() => {
     const set = new Set<string>();
@@ -285,7 +319,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
               YOU (OPERATOR)
             </h3>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              {isStunned ? '⚠️ REBOOTING OPTICAL CAMOUFLAGE...' : charStatus === 'running' ? '⚡ Sprinting to target room...' : charStatus === 'looting' ? '🔓 Hacking vault terminal...' : '🟢 Ready for infiltration orders'}
+              {isStunned ? '⚠️ REBOOTING OPTICAL CAMOUFLAGE...' : charStatus === 'running' ? '⚡ Sprinting to target room...' : charStatus === 'looting' ? '🔓 Hacking vault terminal...' : queue.length > 0 ? `🏃 Next Target: ${queue[0]}` : '🟢 Ready for infiltration orders'}
             </div>
           </div>
         </div>
