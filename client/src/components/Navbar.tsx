@@ -6,8 +6,9 @@ interface NavbarProps {
   soundEnabled: boolean;
   setSoundEnabled: (enabled: boolean) => void;
   onOpenExplainer: () => void;
-  currentScreen: 'setup' | 'live' | 'results';
+  currentScreen: 'landing' | 'setup' | 'live' | 'results';
   onResetToSetup: () => void;
+  onGoToLanding?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -15,13 +16,23 @@ export const Navbar: React.FC<NavbarProps> = ({
   setSoundEnabled,
   onOpenExplainer,
   currentScreen,
-  onResetToSetup
+  onResetToSetup,
+  onGoToLanding
 }) => {
   const toggleSound = () => {
     const next = !soundEnabled;
     soundFx.enabled = next;
     setSoundEnabled(next);
     if (next) soundFx.playClick();
+  };
+
+  const handleBrandClick = () => {
+    if (onGoToLanding) {
+      soundFx.playClick();
+      onGoToLanding();
+    } else {
+      onResetToSetup();
+    }
   };
 
   return (
@@ -42,8 +53,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Brand */}
         <div
-          onClick={currentScreen !== 'setup' ? onResetToSetup : undefined}
-          style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: currentScreen !== 'setup' ? 'pointer' : 'default', userSelect: 'none' }}
+          onClick={handleBrandClick}
+          style={{ display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', userSelect: 'none' }}
         >
           <div style={{
             width: '46px', height: '46px', borderRadius: '12px',
@@ -69,7 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span style={{
                 background: 'rgba(193,18,31,0.22)', border: '1px solid rgba(230,57,70,0.45)',
                 color: '#f87171', borderRadius: '9999px', padding: '2px 10px',
-                fontSize: '0.62rem', fontFamily: 'var(--font-display)',
+                fontSize: '0.62rem', fontFamily: 'var(--font-title)',
                 fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
               }}>
                 🎭 LA CASA DE PAPEL
@@ -83,7 +94,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Screen indicator dots */}
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          {(['setup', 'live', 'results'] as const).map((s) => (
+          {(['landing', 'setup', 'live', 'results'] as const).map((s) => (
             <div key={s} style={{
               height: '5px', width: currentScreen === s ? '26px' : '7px',
               borderRadius: '3px',
@@ -92,7 +103,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }} />
           ))}
           <span className="font-display" style={{ fontSize: '0.62rem', color: 'var(--text-muted)', letterSpacing: '0.08em', marginLeft: '6px', textTransform: 'uppercase' }}>
-            {currentScreen === 'setup' ? 'MISSION BRIEF' : currentScreen === 'live' ? 'OPERATION LIVE' : 'DEBRIEF'}
+            {currentScreen === 'landing' ? 'HQ RECEPTION' : currentScreen === 'setup' ? 'MISSION BRIEF' : currentScreen === 'live' ? 'OPERATION LIVE' : 'DEBRIEF'}
           </span>
         </div>
 
@@ -104,8 +115,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button onClick={toggleSound} className="btn-cyber btn-secondary" style={{ fontSize: '0.78rem', padding: '8px 12px' }}>
             {soundEnabled ? <Volume2 size={15} color="#4ade80" /> : <VolumeX size={15} color="#7a5458" />}
           </button>
-          {currentScreen !== 'setup' && (
-            <button onClick={() => { soundFx.playClick(); onResetToSetup(); }} className="btn-cyber" style={{ fontSize: '0.78rem', padding: '8px 16px', background: 'rgba(193,18,31,0.2)', border: '1px solid rgba(230,57,70,0.4)', color: '#f87171' }}>
+          {currentScreen !== 'landing' && (
+            <button onClick={() => { soundFx.playClick(); handleBrandClick(); }} className="btn-cyber" style={{ fontSize: '0.78rem', padding: '8px 16px', background: 'rgba(193,18,31,0.2)', border: '1px solid rgba(230,57,70,0.4)', color: '#f87171' }}>
               <Terminal size={15} /><span>New Operation</span>
             </button>
           )}

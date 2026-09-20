@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Heist, HeistResult, PlayerAction, MovementLogEntry } from '../shared/types.js';
 import { Navbar } from './components/Navbar.js';
+import { LandingPage } from './components/LandingPage.js';
 import { HeistSetup } from './components/HeistSetup.js';
 import { LiveHeistView } from './components/LiveHeistView.js';
 import { ResultsScreen } from './components/ResultsScreen.js';
@@ -9,7 +10,7 @@ import { apiGenerateHeist, apiSolveHeist, apiSubmitPlayerRun } from './services/
 import { soundFx } from './utils/audio.js';
 
 export function App() {
-  const [currentScreen, setCurrentScreen] = useState<'setup' | 'live' | 'results'>('setup');
+  const [currentScreen, setCurrentScreen] = useState<'landing' | 'setup' | 'live' | 'results'>('landing');
   const [heist, setHeist] = useState<Heist | null>(null);
   const [heistResult, setHeistResult] = useState<HeistResult | null>(null);
   const [playerActions, setPlayerActions] = useState<PlayerAction[]>([]);
@@ -28,7 +29,7 @@ export function App() {
     setSoundEnabled(enabled);
   };
 
-  // Initialize first heist
+  // Initialize first heist in background
   const loadNewHeist = async (options: {
     roomCount?: number;
     timeBudget?: number;
@@ -86,11 +87,17 @@ export function App() {
         onOpenExplainer={() => setShowExplainer(true)}
         currentScreen={currentScreen}
         onResetToSetup={handleResetToSetup}
+        onGoToLanding={() => setCurrentScreen('landing')}
       />
 
       {/* Main Game Screen Router */}
       <main style={{ flex: 1, paddingBottom: '40px' }}>
-        {isLoading && !heist ? (
+        {currentScreen === 'landing' ? (
+          <LandingPage
+            onStartGame={() => setCurrentScreen('setup')}
+            onOpenExplainer={() => setShowExplainer(true)}
+          />
+        ) : isLoading && !heist ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '16px' }}>
             <div className="font-display animate-pulse-glow" style={{ fontSize: '1.5rem', color: '#00f0ff' }}>
               INITIALIZING VAULT PROTOCOLS...
