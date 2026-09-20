@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Room, RoomPosition, CharacterStatus, CharacterState, MovementLogEntry, PlayerAction, Guard } from '../../../../shared/types.js';
 import { computeRoomPositions, getGuardPositionAtTime } from '../../../../shared/utils/movement.js';
+import { getGreedyHint } from '../../../../shared/algorithms/greedy.js';
 import { VaultCanvas } from '../VaultCanvas.js';
-import { User, CheckCircle2, Lock, Zap, DollarSign, Clock, Sparkles, Layers, ListFilter, ShieldAlert, AlertOctagon, Flame, Radio, HelpCircle, Eye } from 'lucide-react';
+import { User, CheckCircle2, Lock, Zap, DollarSign, Clock, Sparkles, Layers, ListFilter, ShieldAlert, AlertOctagon, Flame, Radio, HelpCircle, Eye, Lightbulb } from 'lucide-react';
 import { soundFx } from '../../utils/audio.js';
 
 // Configurable Stealth & Scout Constants
@@ -39,7 +40,8 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
   lootedRoomIds
 }) => {
   const [viewMode, setViewMode] = useState<'blueprint' | 'tactical'>('blueprint');
-  const [hintActive, setHintActive] = useState(false);
+  const [hintCharges, setHintCharges] = useState(2);
+  const [hintActiveRoomId, setHintActiveRoomId] = useState<string | null>(null);
   const [breachAlert, setBreachAlert] = useState<{ active: boolean; message: string; guardName: string } | null>(null);
   const [isStunned, setIsStunned] = useState(false);
 
@@ -91,13 +93,32 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
 
   const arrivalTimerRef = useRef<any>(null);
   const activeLockpickIntervalRef = useRef<any>(null);
+  const hintTimerRef = useRef<any>(null);
   const lastCaughtTimestampRef = useRef<number>(-10);
 
-  // Best unlooted room for greedy hint power-up
-  const unlootedRooms = rooms.filter((r) => !lootedRoomIds.has(r.id) && r.timeCost <= timeRemaining);
-  const bestRatioRoom = unlootedRooms.length > 0
-    ? [...unlootedRooms].sort((a, b) => (b.value / b.timeCost) - (a.value / a.timeCost))[0]
-    : null;
+  // Greedy Knapsack Heuristic pure function evaluation
+  const availableGreedyHint = useMemo(() => {
+    return getGreedyHint(rooms, timeRemaining, Array.from(lootedRoomIds));
+  }, [rooms, timeRemaining, lootedRoomIds]);
+
+  // Handle Greedy Hint Power-up
+  const handleUseHint = useCallback(() => {
+    if (hintCharges <= 0 || isFinished) return;
+    const bestRoom = getGreedyHint(rooms, timeRemaining, Array.from(lootedRoomIds));
+    if (!bestRoom) return;
+
+    soundFx.playLootSuccess();
+    setHintCharges((c) => Math.max(0, c - 1));
+    setHintActiveRoomId(bestRoom.id);
+
+    // Auto-reveal the room so the player can see its exact value and time
+    setRevealedRoomIds((prev) => new Set(prev).add(bestRoom.id));
+
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = setTimeout(() => {
+      setHintActiveRoomId(null);
+    }, 4500);
+  }, [hintCharges, isFinished, rooms, timeRemaining, lootedRoomIds]);
 
   // Proximity Auto-Reveal: reveal any room when character is near it
   useEffect(() => {
@@ -300,6 +321,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
     return () => {
       if (arrivalTimerRef.current) clearTimeout(arrivalTimerRef.current);
       if (activeLockpickIntervalRef.current) clearInterval(activeLockpickIntervalRef.current);
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
     };
   }, []);
 
@@ -370,7 +392,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
         </div>
       </div>
 
-      {/* Control & Scout Power-Up Toolbar */}
+      {/* Control & Power-Up Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.35)', padding: '8px 14px', borderRadius: '10px', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
@@ -411,16 +433,22 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
             <span>{isScoutMode ? 'Click Room to Scout' : `Deploy Scout Drone (${scoutCharges})`}</span>
           </button>
 
-          {/* Greedy Scan Hint Button */}
+          {/* Greedy Knapsack Hint Power-Up Button */}
           <button
-            onClick={() => { soundFx.playLootSuccess(); setHintActive(true); setTimeout(() => setHintActive(false), 4000); }}
-            disabled={hintActive || isFinished || unlootedRooms.length === 0}
+            onClick={handleUseHint}
+            disabled={hintCharges <= 0 || isFinished || !availableGreedyHint}
             className="btn-cyber btn-secondary"
-            style={{ fontSize: '0.78rem', padding: '6px 12px', color: '#f59e0b', borderColor: 'rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.1)' }}
-            title="Highlight top value/time room"
+            style={{
+              fontSize: '0.78rem',
+              padding: '6px 12px',
+              color: hintCharges > 0 && availableGreedyHint ? '#f59e0b' : 'var(--text-muted)',
+              borderColor: hintCharges > 0 && availableGreedyHint ? 'rgba(245, 158, 11, 0.5)' : 'rgba(255, 255, 255, 0.1)',
+              background: hintActiveRoomId ? 'rgba(245, 158, 11, 0.25)' : 'rgba(245, 158, 11, 0.08)'
+            }}
+            title={hintCharges > 0 ? 'Evaluate Greedy heuristic to highlight top value/time room' : 'No hint power-ups remaining'}
           >
-            <Sparkles size={14} />
-            <span>{hintActive ? 'Greedy Scan!' : 'Greedy Hint'}</span>
+            <Lightbulb size={14} className={hintActiveRoomId ? 'animate-pulse-glow' : ''} />
+            <span>{hintActiveRoomId ? 'Greedy Target Lit!' : `Greedy Hint (${hintCharges} Left)`}</span>
           </button>
         </div>
       </div>
@@ -440,7 +468,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
               onScoutRoom={handleScoutRoom}
               isScoutMode={isScoutMode}
               disabledRoomIds={disabledRoomIds}
-              hintRoomId={hintActive && bestRatioRoom ? bestRatioRoom.id : null}
+              hintRoomId={hintActiveRoomId}
               guards={guards}
               currentTime={timeElapsed}
               characters={[
@@ -468,6 +496,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
               const isLooted = lootedRoomIds.has(room.id);
               const isRevealed = revealedRoomIds.has(room.id);
               const isCurrent = currentTargetRoomId === room.id;
+              const isHint = hintActiveRoomId === room.id;
               const queueIdx = queue.indexOf(room.id);
               const isQueued = queueIdx !== -1;
               const canAfford = room.timeCost <= timeRemaining;
@@ -480,6 +509,8 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                   style={{
                     background: isCurrent
                       ? 'rgba(0, 240, 255, 0.15)'
+                      : isHint
+                      ? 'rgba(245, 158, 11, 0.18)'
                       : isLooted
                       ? 'rgba(16, 185, 129, 0.08)'
                       : isQueued
@@ -489,6 +520,8 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                       : 'rgba(255, 255, 255, 0.03)',
                     border: isCurrent
                       ? '1px solid #00f0ff'
+                      : isHint
+                      ? '2px solid #f59e0b'
                       : isLooted
                       ? '1px solid rgba(16, 185, 129, 0.4)'
                       : isQueued
@@ -496,6 +529,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                       : !isRevealed
                       ? '1px dashed rgba(148, 163, 184, 0.3)'
                       : '1px solid var(--border-subtle)',
+                    boxShadow: isHint ? '0 0 16px rgba(245, 158, 11, 0.5)' : undefined,
                     borderRadius: '10px',
                     padding: '12px 16px',
                     cursor: !isDisabled ? 'pointer' : 'default',
@@ -507,9 +541,14 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                 >
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span className="font-display" style={{ fontWeight: 700, fontSize: '0.95rem', color: isLooted ? '#34d399' : !isRevealed ? '#94a3b8' : '#f8fafc' }}>
+                      <span className="font-display" style={{ fontWeight: 700, fontSize: '0.95rem', color: isLooted ? '#34d399' : isHint ? '#fbbf24' : !isRevealed ? '#94a3b8' : '#f8fafc' }}>
                         {room.name}
                       </span>
+                      {isHint && (
+                        <span className="badge badge-player animate-pulse-glow" style={{ fontSize: '0.62rem', background: '#f59e0b', color: '#000' }}>
+                          ⚡ GREEDY CHOICE
+                        </span>
+                      )}
                       {!isRevealed && (
                         <span className="badge badge-fog" style={{ fontSize: '0.62rem' }}>
                           <HelpCircle size={10} /> ENCRYPTED

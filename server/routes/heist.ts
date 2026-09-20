@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { generateHeist } from '../../shared/algorithms/generator.js';
 import { solveDP } from '../../shared/algorithms/dp.js';
 import { solveBranchAndBound } from '../../shared/algorithms/branchAndBound.js';
+import { solveGreedyKnapsack } from '../../shared/algorithms/greedy.js';
 import { Heist, HeistResult, PlayerAction, Room } from '../../shared/types.js';
 
 export const heistRouter = Router();
@@ -57,7 +58,7 @@ heistRouter.get('/:id', (req: Request, res: Response) => {
 
 /**
  * POST /api/heist/:id/solve
- * Runs both DP and Branch & Bound solvers server-side and returns full comparison data.
+ * Runs DP, Branch & Bound, and Greedy knapsack solvers server-side and returns full comparison data.
  */
 heistRouter.post('/:id/solve', (req: Request, res: Response) => {
   try {
@@ -83,6 +84,7 @@ heistRouter.post('/:id/solve', (req: Request, res: Response) => {
 
     const dpResult = solveDP(heist.rooms, heist.timeBudget);
     const bnbResult = solveBranchAndBound(heist.rooms, heist.timeBudget);
+    const greedyResult = solveGreedyKnapsack(heist.rooms, heist.timeBudget);
 
     const result: HeistResult = {
       heistId: heist.id,
@@ -97,7 +99,11 @@ heistRouter.post('/:id/solve', (req: Request, res: Response) => {
       dpCellsComputed: dpResult.cellsComputed,
       bnbTimeMs: Math.round(bnbResult.timeMs * 100) / 100,
       dpTimeMs: Math.round(dpResult.timeMs * 100) / 100,
-      prunedCount: bnbResult.prunedCount
+      prunedCount: bnbResult.prunedCount,
+      greedyValue: greedyResult.totalValue,
+      greedyPath: greedyResult.executionPath,
+      greedyTimeMs: Math.round(greedyResult.timeMs * 100) / 100,
+      greedyTotalTime: greedyResult.totalTime
     };
 
     res.json(result);

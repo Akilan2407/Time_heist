@@ -286,6 +286,22 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
               />
             )}
 
+            {/* Greedy Hint Golden Radar Wave */}
+            {isHint && (
+              <div
+                style={{
+                  position: 'absolute',
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  border: '2.5px solid #f59e0b',
+                  boxShadow: '0 0 24px rgba(245, 158, 11, 0.8)',
+                  animation: 'radar-ping 1s ease-out infinite',
+                  pointerEvents: 'none'
+                }}
+              />
+            )}
+
             {/* Scout Target Reticle during Scout Mode on unrevealed rooms */}
             {isScoutMode && !isRevealed && (
               <div

@@ -115,6 +115,10 @@ export interface HeistResult {
   dpTimeMs: number;
   prunedCount: number;
   breachCount?: number;
+  greedyValue?: number;
+  greedyPath?: PathItem[];
+  greedyTimeMs?: number;
+  greedyTotalTime?: number;
 }
 
 export interface PlayerStateAtTime {
