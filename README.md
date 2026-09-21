@@ -8,6 +8,8 @@
 
 **Time Heist** is an interactive, gamified computer science simulation inspired by the world of *Money Heist (La Casa de Papel)*. Players step into the shoes of **The Professor (Human Operator)** to infiltrate bank vaults, decode encrypted room intelligence, avoid patrolling sentry drones, and loot maximum Indian Rupee (₹) value before the alarm countdown seals the blast doors.
 
+📖 **New to the game? Check out the complete [How to Play Guide (Field Manual)](file:///c:/Users/Akilan.AKILAN-SP/Desktop/Project/Time_heist/HOW_TO_PLAY.md)!**
+
 Simultaneously, two algorithmic AI rivals execute in real-time:
 - 🤖 **Berlin's DP Crew**: Solves the vault using **Bottom-Up Dynamic Programming** tabulation with guaranteed mathematical optimality ($O(n \cdot W)$).
 - ⚡ **Tokyo's B&B Squad**: Traverses a state-space tree using **Branch & Bound** with fractional knapsack upper bounds, aggressively pruning sub-optimal branches.
