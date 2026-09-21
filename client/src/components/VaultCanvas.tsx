@@ -13,6 +13,7 @@ export interface VaultCanvasProps {
   revealedRoomIds?: Set<string> | string[];
   queue?: string[];
   activeRoomId?: string | null;
+  lootingProgress?: number;
   onRoomClick?: (room: Room) => void;
   onScoutRoom?: (room: Room) => void;
   isScoutMode?: boolean;
@@ -34,6 +35,7 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
   revealedRoomIds = new Set(),
   queue = [],
   activeRoomId = null,
+  lootingProgress = 0,
   onRoomClick,
   onScoutRoom,
   isScoutMode = false,
@@ -284,6 +286,77 @@ export const VaultCanvas: React.FC<VaultCanvasProps> = ({
                   pointerEvents: 'none'
                 }}
               />
+            )}
+
+            {/* Circular Countdown SVG Ring during Active Looting */}
+            {isActive && lootingProgress > 0 && (
+              <svg
+                style={{
+                  position: 'absolute',
+                  top: '-12px',
+                  left: '-12px',
+                  width: '78px',
+                  height: '78px',
+                  pointerEvents: 'none',
+                  transform: 'rotate(-90deg)',
+                  zIndex: 15
+                }}
+              >
+                <circle
+                  cx="39"
+                  cy="39"
+                  r="33"
+                  fill="transparent"
+                  stroke="rgba(0, 240, 255, 0.25)"
+                  strokeWidth="3.5"
+                />
+                <circle
+                  cx="39"
+                  cy="39"
+                  r="33"
+                  fill="transparent"
+                  stroke="#00f0ff"
+                  strokeWidth="3.5"
+                  strokeDasharray={207.3}
+                  strokeDashoffset={207.3 * (1 - lootingProgress)}
+                  strokeLinecap="round"
+                  style={{
+                    filter: 'drop-shadow(0 0 6px #00f0ff)',
+                    transition: 'stroke-dashoffset 0.05s linear'
+                  }}
+                />
+              </svg>
+            )}
+
+            {/* Floating Live Room Hacking Countdown Tag */}
+            {isActive && lootingProgress > 0 && (
+              <div
+                className="font-mono animate-pulse-glow"
+                style={{
+                  position: 'absolute',
+                  top: '-34px',
+                  background: 'rgba(5, 12, 26, 0.96)',
+                  border: '1.5px solid #00f0ff',
+                  boxShadow: '0 0 16px rgba(0, 240, 255, 0.8)',
+                  borderRadius: '6px',
+                  padding: '2px 8px',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  color: '#00f0ff',
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  zIndex: 25,
+                  pointerEvents: 'none'
+                }}
+              >
+                <Clock size={11} color="#00f0ff" />
+                <span>⏳ {Math.max(0, room.timeCost * (1 - lootingProgress)).toFixed(1)}s</span>
+                <span style={{ color: '#f59e0b', fontSize: '0.64rem' }}>
+                  (+{(room.timeCost * lootingProgress).toFixed(1)}s spent)
+                </span>
+              </div>
             )}
 
             {/* Greedy Hint Golden Radar Wave */}

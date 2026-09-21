@@ -198,6 +198,7 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
           roomPositions={roomPositions}
           lootedRoomIds={playerState.lootedRoomIds}
           activeRoomId={playerPos.activeRoomId}
+          lootingProgress={playerPos.status === 'looting' ? playerPos.progress : 0}
           guards={heist.guards}
           currentTime={scrubTime}
           title="TRI-CREW & SENTRY PATROL REPLAY ARENA"
@@ -209,7 +210,10 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
               variant: 'player',
               facing: playerPos.facing,
               name: 'OPERATOR',
-              transitionDuration: 0
+              transitionDuration: 0,
+              lootingProgress: playerPos.status === 'looting' ? playerPos.progress : undefined,
+              lootingTimeCost: playerPos.status === 'looting' && playerPos.activeRoomId ? roomMap.get(playerPos.activeRoomId)?.timeCost : undefined,
+              activeRoomName: playerPos.status === 'looting' && playerPos.activeRoomId ? roomMap.get(playerPos.activeRoomId)?.name : undefined
             },
             {
               x: dpPos.x,
@@ -218,7 +222,10 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
               variant: 'dp',
               facing: dpPos.facing,
               name: 'DP CREW',
-              transitionDuration: 0
+              transitionDuration: 0,
+              lootingProgress: dpPos.status === 'looting' ? dpPos.progress : undefined,
+              lootingTimeCost: dpPos.status === 'looting' && dpPos.activeRoomId ? roomMap.get(dpPos.activeRoomId)?.timeCost : undefined,
+              activeRoomName: dpPos.status === 'looting' && dpPos.activeRoomId ? roomMap.get(dpPos.activeRoomId)?.name : undefined
             },
             {
               x: bnbPos.x,
@@ -227,7 +234,10 @@ export const ReplayScrubber: React.FC<ReplayScrubberProps> = ({
               variant: 'bnb',
               facing: bnbPos.facing,
               name: 'B&B CREW',
-              transitionDuration: 0
+              transitionDuration: 0,
+              lootingProgress: bnbPos.status === 'looting' ? bnbPos.progress : undefined,
+              lootingTimeCost: bnbPos.status === 'looting' && bnbPos.activeRoomId ? roomMap.get(bnbPos.activeRoomId)?.timeCost : undefined,
+              activeRoomName: bnbPos.status === 'looting' && bnbPos.activeRoomId ? roomMap.get(bnbPos.activeRoomId)?.name : undefined
             }
           ]}
           width={760}

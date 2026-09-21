@@ -378,7 +378,37 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
               YOU (OPERATOR)
             </h3>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              {isStunned ? '⚠️ REBOOTING OPTICAL CAMOUFLAGE...' : charStatus === 'running' ? '⚡ Sprinting to target room...' : charStatus === 'looting' ? '🔓 Hacking vault terminal...' : queue.length > 0 ? `🏃 Next Target in Queue` : '🟢 Ready for infiltration orders'}
+              {isStunned ? (
+                '⚠️ REBOOTING OPTICAL CAMOUFLAGE...'
+              ) : charStatus === 'running' ? (
+                '⚡ Sprinting to target room...'
+              ) : charStatus === 'looting' && currentTargetRoomId && roomMap.get(currentTargetRoomId) ? (
+                (() => {
+                  const targetR = roomMap.get(currentTargetRoomId)!;
+                  const timeRem = Math.max(0, targetR.timeCost * (1 - lootingProgress));
+                  const timeSpent = Math.min(targetR.timeCost, targetR.timeCost * lootingProgress);
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '2px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <span style={{ color: '#f59e0b', fontWeight: 700 }}>🔓 HACKING {targetR.name.toUpperCase()}</span>
+                        <span className="font-mono" style={{ color: '#00f0ff', background: 'rgba(0,240,255,0.18)', padding: '1px 6px', borderRadius: '4px', border: '1px solid rgba(0,240,255,0.4)', fontWeight: 800 }}>
+                          ⏳ {timeRem.toFixed(1)}s left
+                        </span>
+                        <span className="font-mono" style={{ color: '#cbd5e1', fontSize: '0.72rem' }}>
+                          (+{timeSpent.toFixed(1)}s / {targetR.timeCost}s consumed)
+                        </span>
+                      </div>
+                      <div style={{ width: '100%', maxWidth: '240px', height: '4px', background: 'rgba(255,255,255,0.12)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: `${Math.min(100, Math.round(lootingProgress * 100))}%`, height: '100%', background: 'linear-gradient(90deg, #f59e0b, #00f0ff)', boxShadow: '0 0 8px #00f0ff', transition: 'width 0.05s linear' }} />
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : queue.length > 0 ? (
+                `🏃 Next Target in Queue (${queue.length})`
+              ) : (
+                '🟢 Ready for infiltration orders'
+              )}
             </div>
           </div>
         </div>
@@ -464,6 +494,7 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
               revealedRoomIds={revealedRoomIds}
               queue={queue}
               activeRoomId={currentTargetRoomId}
+              lootingProgress={charStatus === 'looting' ? lootingProgress : 0}
               onRoomClick={handleQueueRoom}
               onScoutRoom={handleScoutRoom}
               isScoutMode={isScoutMode}
@@ -479,7 +510,10 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                   variant: 'player',
                   facing: charFacing,
                   name: 'OPERATOR',
-                  transitionDuration
+                  transitionDuration,
+                  lootingProgress: charStatus === 'looting' ? lootingProgress : undefined,
+                  lootingTimeCost: charStatus === 'looting' && currentTargetRoomId ? roomMap.get(currentTargetRoomId)?.timeCost : undefined,
+                  activeRoomName: charStatus === 'looting' && currentTargetRoomId ? roomMap.get(currentTargetRoomId)?.name : undefined
                 }
               ]}
               width={740}
@@ -591,8 +625,15 @@ export const PlayerPanel: React.FC<PlayerPanelProps> = ({
                     {isLooted ? (
                       <span className="badge badge-bnb" style={{ fontSize: '0.75rem' }}><CheckCircle2 size={13} /> SECURED</span>
                     ) : isCurrent ? (
-                      <span className="badge badge-player animate-pulse-glow" style={{ fontSize: '0.75rem' }}>
-                        {charStatus === 'running' ? 'SPRINTING' : `HACKING (${Math.round(lootingProgress * 100)}%)`}
+                      <span className="badge badge-player animate-pulse-glow" style={{ fontSize: '0.75rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                        <span>
+                          {charStatus === 'running' ? 'SPRINTING' : `⏳ ${Math.max(0, room.timeCost * (1 - lootingProgress)).toFixed(1)}s left`}
+                        </span>
+                        {charStatus === 'looting' && (
+                          <span style={{ fontSize: '0.62rem', color: '#ffd700', fontWeight: 600 }}>
+                            (+{(room.timeCost * lootingProgress).toFixed(1)}s / {room.timeCost}s)
+                          </span>
+                        )}
                       </span>
                     ) : isQueued ? (
                       <span className="badge badge-dp" style={{ fontSize: '0.75rem' }}>QUEUED #{queueIdx + 1}</span>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CharacterStatus } from '../../../shared/types.js';
-import { Zap, Sparkles, Lock, ShieldCheck } from 'lucide-react';
+import { Zap, Sparkles, Lock, ShieldCheck, Clock } from 'lucide-react';
 import runboyImg from '../assets/runboy.png';
 import { removeWhiteBackground } from '../utils/imageUtils.js';
 
@@ -13,6 +13,9 @@ export interface CharacterProps {
   name?: string;
   transitionDuration?: number; // seconds
   showLabel?: boolean;
+  lootingProgress?: number; // 0 to 1
+  lootingTimeCost?: number; // seconds
+  activeRoomName?: string;
 }
 
 export const Character: React.FC<CharacterProps> = ({
@@ -23,7 +26,10 @@ export const Character: React.FC<CharacterProps> = ({
   facing = 'right',
   name,
   transitionDuration = 0.5,
-  showLabel = true
+  showLabel = true,
+  lootingProgress,
+  lootingTimeCost,
+  activeRoomName
 }) => {
   const [spriteSrc, setSpriteSrc] = useState<string>(runboyImg);
 
@@ -63,6 +69,11 @@ export const Character: React.FC<CharacterProps> = ({
   const isRunning = status === 'running';
   const isLooting = status === 'looting';
 
+  const progress = lootingProgress !== undefined ? Math.min(1, Math.max(0, lootingProgress)) : 0;
+  const timeCost = lootingTimeCost !== undefined && lootingTimeCost > 0 ? lootingTimeCost : 5;
+  const timeRemaining = Math.max(0, timeCost * (1 - progress));
+  const timeConsumed = Math.min(timeCost, timeCost * progress);
+
   const animationClass = isRunning
     ? 'character-sprite-running'
     : isLooting
@@ -89,6 +100,64 @@ export const Character: React.FC<CharacterProps> = ({
         marginTop: '-72px'   // Bottom-anchored offset
       }}
     >
+      {/* Live Hacking Countdown Timer Bubble directly above the boy */}
+      {isLooting && (
+        <div
+          style={{
+            position: 'absolute',
+            top: showLabel ? '-52px' : '-40px',
+            background: 'linear-gradient(135deg, rgba(5, 12, 28, 0.96), rgba(15, 23, 42, 0.98))',
+            border: `1.5px solid ${theme.primary}`,
+            boxShadow: `0 0 20px ${theme.glow}, inset 0 0 10px rgba(0,240,255,0.2)`,
+            borderRadius: '10px',
+            padding: '4px 10px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '2px',
+            whiteSpace: 'nowrap',
+            zIndex: 70,
+            pointerEvents: 'none',
+            animation: 'pulseGlow 1.5s infinite ease-in-out'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.74rem', fontWeight: 900 }}>
+            <Clock size={12} color={theme.primary} />
+            <span className="font-mono" style={{ color: '#ffffff', letterSpacing: '0.04em' }}>
+              ⏳ <span style={{ color: theme.primary, fontSize: '0.84rem' }}>{timeRemaining.toFixed(1)}s</span> left
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.64rem', color: 'var(--text-secondary)' }}>
+            <span className="font-mono" style={{ color: '#f59e0b', fontWeight: 700 }}>
+              +{timeConsumed.toFixed(1)}s / {timeCost.toFixed(0)}s spent
+            </span>
+          </div>
+
+          {/* Micro Progress Bar */}
+          <div
+            style={{
+              width: '78px',
+              height: '4px',
+              borderRadius: '2px',
+              background: 'rgba(255, 255, 255, 0.15)',
+              overflow: 'hidden',
+              marginTop: '1px'
+            }}
+          >
+            <div
+              style={{
+                width: `${Math.min(100, Math.round(progress * 100))}%`,
+                height: '100%',
+                background: `linear-gradient(90deg, #f59e0b, ${theme.primary})`,
+                boxShadow: `0 0 6px ${theme.primary}`,
+                transition: 'width 0.05s linear'
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Label Badge */}
       {showLabel && (
         <div
@@ -108,7 +177,7 @@ export const Character: React.FC<CharacterProps> = ({
           }}
         >
           {name || theme.tag}
-          {isLooting && ' [HACKING]'}
+          {isLooting && ` [${timeRemaining.toFixed(1)}s]`}
           {isRunning && ' [SPRINT]'}
         </div>
       )}
